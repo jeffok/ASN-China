@@ -37,7 +37,7 @@ def saveLatestASN():
         if asnName is not None:
             asnInfo = "IP-ASN,{} // {}".format(asnNumber, asnName)
             with open("China_ASN.rsc", "a") as Chian_ASN:
-                Chian_ASN.write("add list=china_asn range=" + asnNumber + "\n")
+                Chian_ASN.write("add list=China_ASN range=" + asnNumber + "\n")
 
             with open("ASN.China.list", "a") as asnFile:
                 asnFile.write(asnInfo)

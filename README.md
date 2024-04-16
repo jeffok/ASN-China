@@ -9,7 +9,7 @@
  * Copyright © 2022 by Vincent, All Rights Reserved. 
 -->
 # ASN-China
-ASN and IP list in China library.
+ASN and IP list in China library. UTC 20：00
 
 ## Features
 - Automatic daily updates
@@ -21,17 +21,23 @@ ASN and IP list in China library.
 
 ```
 /system script
-add name="fetch-and-execute" source={
-/log info "Starting the fetch-and-execute script."
-/log info "Removing existing entries from num-list 'china_asn'."
-/routing filter num-list/remove [find list="china_asn"]
-/log info "Fetching the script from the remote server."
-/tool fetch url="https://example.com/my-script.rsc" mode=https dst-path="my-script.rsc" check-certificate=yes
+add name="Update_China_ASN" source={
+/log info "Fetching the script from the github."
+/tool fetch url="https://raw.githubusercontent.com/jeffok/ASN-China/main/China_ASN.rsc" mode=https dst-path="China_ASN.rsc" check-certificate=yes
 :delay 10s;
+/log info "Removing existing entries from num-list 'China_ASN'."
+/routing filter num-list/remove [find list="China_ASN"]
 /log info "Download complete, preparing to import the script."
-/import file-name="my-script.rsc"
+/import file-name="my-China_ASN.rsc"
 /log info "Script import completed successfully."
 }
+```
+
+### add scheduler
+```
+/system scheduler
+add name="daily_update_Chain_ASN" start-time="04:00:00" interval=1d on-event="Update_China_ASN"
+
 ```
 
 ## Use in proxy app
