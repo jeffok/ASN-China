@@ -28,7 +28,7 @@ add name="Update_China_ASN" source={
 /log info "Removing existing entries from num-list 'China_ASN'."
 /routing filter num-list/remove [find list="China_ASN"]
 /log info "Download complete, preparing to import the script."
-/import file-name="my-China_ASN.rsc"
+/import file-name="China_ASN.rsc"
 /log info "Script import completed successfully."
 }
 ```
