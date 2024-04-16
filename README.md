@@ -15,6 +15,25 @@ ASN and IP list in China library.
 - Automatic daily updates
 - Reliable and accurate source
 
+## Routeros V7 BGP China_ASN
+
+### add script to Routeros 
+
+```
+/system script
+add name="fetch-and-execute" source={
+/log info "Starting the fetch-and-execute script."
+/log info "Removing existing entries from num-list 'china_asn'."
+/routing filter num-list/remove [find list="china_asn"]
+/log info "Fetching the script from the remote server."
+/tool fetch url="https://example.com/my-script.rsc" mode=https dst-path="my-script.rsc" check-certificate=yes
+:delay 10s;
+/log info "Download complete, preparing to import the script."
+/import file-name="my-script.rsc"
+/log info "Script import completed successfully."
+}
+```
+
 ## Use in proxy app
 ### Surge
 ```

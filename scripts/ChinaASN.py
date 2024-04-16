@@ -19,6 +19,9 @@ def initFile():
         asnFile.write("// Last Updated: UTC " + localTime + "\n")
         asnFile.write("// Made by Vincent, All rights reserved. " + "\n\n")
 
+    with open("China_asn.rsc", "w") as Chian_ASN:
+        Chian_ASN.write("/routing/filter/num-list" + "\n")
+
 def saveLatestASN():
     url = "https://bgp.he.net/country/CN"
     headers = {
@@ -31,8 +34,11 @@ def saveLatestASN():
     for asn in asns:
         asnNumber = asn.xpath('td[1]/a')[0].text.replace('AS','')
         asnName = asn.xpath('td[2]')[0].text
-        if asnName != None:
+        if asnName is not None:
             asnInfo = "IP-ASN,{} // {}".format(asnNumber, asnName)
+            with open("China_ASN.rsc", "a") as Chian_ASN:
+                Chian_ASN.write("add list=china_asn range=" + asnNumber + "\n")
+
             with open("ASN.China.list", "a") as asnFile:
                 asnFile.write(asnInfo)
                 asnFile.write("\n")
