@@ -19,7 +19,7 @@ def initFile():
         asnFile.write("// Last Updated: UTC " + localTime + "\n")
         asnFile.write("// Made by Vincent, All rights reserved. " + "\n\n")
 
-    with open("China_asn.rsc", "w") as Chian_ASN:
+    with open("China_ASN.rsc", "w") as Chian_ASN:
         Chian_ASN.write("/routing/filter/num-list" + "\n")
 
 def saveLatestASN():
