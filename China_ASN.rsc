@@ -11,12 +11,12 @@ add list=China_ASN range=139742
 add list=China_ASN range=4808
 add list=China_ASN range=4847
 add list=China_ASN range=209650
-add list=China_ASN range=10111
 add list=China_ASN range=4842
+add list=China_ASN range=10111
 add list=China_ASN range=17621
 add list=China_ASN range=4538
-add list=China_ASN range=63631
 add list=China_ASN range=9808
+add list=China_ASN range=63631
 add list=China_ASN range=4812
 add list=China_ASN range=56048
 add list=China_ASN range=133865
@@ -56,13 +56,14 @@ add list=China_ASN range=23848
 add list=China_ASN range=136958
 add list=China_ASN range=59019
 add list=China_ASN range=44421
-add list=China_ASN range=24409
 add list=China_ASN range=212793
 add list=China_ASN range=17623
 add list=China_ASN range=9809
 add list=China_ASN range=58461
 add list=China_ASN range=55996
 add list=China_ASN range=24489
+add list=China_ASN range=24409
+add list=China_ASN range=58593
 add list=China_ASN range=56041
 add list=China_ASN range=56006
 add list=China_ASN range=55992
@@ -79,7 +80,6 @@ add list=China_ASN range=9814
 add list=China_ASN range=63646
 add list=China_ASN range=59078
 add list=China_ASN range=58850
-add list=China_ASN range=58593
 add list=China_ASN range=58536
 add list=China_ASN range=55966
 add list=China_ASN range=42962
@@ -109,7 +109,6 @@ add list=China_ASN range=212237
 add list=China_ASN range=17969
 add list=China_ASN range=17816
 add list=China_ASN range=17428
-add list=China_ASN range=139888
 add list=China_ASN range=139721
 add list=China_ASN range=138950
 add list=China_ASN range=137801
@@ -162,7 +161,6 @@ add list=China_ASN range=135629
 add list=China_ASN range=135061
 add list=China_ASN range=134773
 add list=China_ASN range=134542
-add list=China_ASN range=134417
 add list=China_ASN range=131574
 add list=China_ASN range=131486
 add list=China_ASN range=9939
@@ -236,6 +234,7 @@ add list=China_ASN range=140716
 add list=China_ASN range=140330
 add list=China_ASN range=140292
 add list=China_ASN range=140061
+add list=China_ASN range=139888
 add list=China_ASN range=139203
 add list=China_ASN range=139179
 add list=China_ASN range=139178
@@ -256,6 +255,7 @@ add list=China_ASN range=134761
 add list=China_ASN range=134760
 add list=China_ASN range=134756
 add list=China_ASN range=134420
+add list=China_ASN range=134417
 add list=China_ASN range=133774
 add list=China_ASN range=133194
 add list=China_ASN range=133111
@@ -666,7 +666,6 @@ add list=China_ASN range=215786
 add list=China_ASN range=215507
 add list=China_ASN range=215502
 add list=China_ASN range=215105
-add list=China_ASN range=215056
 add list=China_ASN range=215007
 add list=China_ASN range=214963
 add list=China_ASN range=214921
