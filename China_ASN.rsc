@@ -35,10 +35,10 @@ add list=China_ASN range=24413
 add list=China_ASN range=23724
 add list=China_ASN range=152320
 add list=China_ASN range=137753
+add list=China_ASN range=137897
 add list=China_ASN range=45090
 add list=China_ASN range=37963
 add list=China_ASN range=4811
-add list=China_ASN range=137897
 add list=China_ASN range=56046
 add list=China_ASN range=55990
 add list=China_ASN range=140633
@@ -58,6 +58,7 @@ add list=China_ASN range=23848
 add list=China_ASN range=136958
 add list=China_ASN range=44421
 add list=China_ASN range=24489
+add list=China_ASN range=150173
 add list=China_ASN range=63646
 add list=China_ASN range=58461
 add list=China_ASN range=24409
@@ -108,7 +109,6 @@ add list=China_ASN range=23844
 add list=China_ASN range=23771
 add list=China_ASN range=212237
 add list=China_ASN range=17816
-add list=China_ASN range=150173
 add list=China_ASN range=139721
 add list=China_ASN range=138950
 add list=China_ASN range=137801
@@ -150,7 +150,6 @@ add list=China_ASN range=17775
 add list=China_ASN range=17429
 add list=China_ASN range=152711
 add list=China_ASN range=141425
-add list=China_ASN range=139888
 add list=China_ASN range=139148
 add list=China_ASN range=138538
 add list=China_ASN range=136198
@@ -231,6 +230,7 @@ add list=China_ASN range=140895
 add list=China_ASN range=140716
 add list=China_ASN range=140292
 add list=China_ASN range=140061
+add list=China_ASN range=139888
 add list=China_ASN range=139743
 add list=China_ASN range=139203
 add list=China_ASN range=139179
@@ -350,6 +350,7 @@ add list=China_ASN range=146771
 add list=China_ASN range=146758
 add list=China_ASN range=146746
 add list=China_ASN range=142608
+add list=China_ASN range=142586
 add list=China_ASN range=141998
 add list=China_ASN range=141771
 add list=China_ASN range=141739
@@ -572,7 +573,6 @@ add list=China_ASN range=146792
 add list=China_ASN range=146782
 add list=China_ASN range=146772
 add list=China_ASN range=142611
-add list=China_ASN range=142586
 add list=China_ASN range=142404
 add list=China_ASN range=141776
 add list=China_ASN range=141006
