@@ -12,12 +12,12 @@ add list=China_ASN range=4808
 add list=China_ASN range=10111
 add list=China_ASN range=4847
 add list=China_ASN range=209650
-add list=China_ASN range=17621
 add list=China_ASN range=63631
+add list=China_ASN range=17621
 add list=China_ASN range=4842
 add list=China_ASN range=4538
-add list=China_ASN range=4812
 add list=China_ASN range=9808
+add list=China_ASN range=4812
 add list=China_ASN range=133865
 add list=China_ASN range=56048
 add list=China_ASN range=24400
@@ -25,11 +25,11 @@ add list=China_ASN range=142111
 add list=China_ASN range=146762
 add list=China_ASN range=58879
 add list=China_ASN range=139799
-add list=China_ASN range=7497
 add list=China_ASN range=146834
+add list=China_ASN range=7497
 add list=China_ASN range=134578
-add list=China_ASN range=9929
 add list=China_ASN range=56040
+add list=China_ASN range=9929
 add list=China_ASN range=146788
 add list=China_ASN range=137753
 add list=China_ASN range=24413
@@ -168,7 +168,6 @@ add list=China_ASN range=9811
 add list=China_ASN range=9810
 add list=China_ASN range=9807
 add list=China_ASN range=9805
-add list=China_ASN range=9392
 add list=China_ASN range=9389
 add list=China_ASN range=9306
 add list=China_ASN range=7653
@@ -265,6 +264,7 @@ add list=China_ASN range=9803
 add list=China_ASN range=9802
 add list=China_ASN range=9516
 add list=China_ASN range=9405
+add list=China_ASN range=9392
 add list=China_ASN range=7721
 add list=China_ASN range=7640
 add list=China_ASN range=63838
@@ -567,7 +567,6 @@ add list=China_ASN range=146835
 add list=China_ASN range=146810
 add list=China_ASN range=146809
 add list=China_ASN range=146806
-add list=China_ASN range=146792
 add list=China_ASN range=146782
 add list=China_ASN range=146772
 add list=China_ASN range=142611
@@ -630,6 +629,7 @@ add list=China_ASN range=131565
 add list=China_ASN range=131524
 add list=China_ASN range=131522
 add list=China_ASN range=131516
+add list=China_ASN range=131482
 add list=China_ASN range=131192
 add list=China_ASN range=9425
 add list=China_ASN range=7586
