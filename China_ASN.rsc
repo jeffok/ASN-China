@@ -22,8 +22,8 @@ add list=China_ASN range=133865
 add list=China_ASN range=58879
 add list=China_ASN range=24400
 add list=China_ASN range=146762
-add list=China_ASN range=142111
 add list=China_ASN range=139799
+add list=China_ASN range=142111
 add list=China_ASN range=7497
 add list=China_ASN range=146834
 add list=China_ASN range=4842
@@ -730,7 +730,6 @@ add list=China_ASN range=208680
 add list=China_ASN range=208679
 add list=China_ASN range=208618
 add list=China_ASN range=208266
-add list=China_ASN range=207401
 add list=China_ASN range=207338
 add list=China_ASN range=206919
 add list=China_ASN range=206843
@@ -764,6 +763,7 @@ add list=China_ASN range=200256
 add list=China_ASN range=200103
 add list=China_ASN range=200078
 add list=China_ASN range=200021
+add list=China_ASN range=199932
 add list=China_ASN range=199832
 add list=China_ASN range=199691
 add list=China_ASN range=199436
