@@ -170,6 +170,7 @@ add list=China_ASN range=9306
 add list=China_ASN range=7653
 add list=China_ASN range=7641
 add list=China_ASN range=7609
+add list=China_ASN range=63695
 add list=China_ASN range=63689
 add list=China_ASN range=63673
 add list=China_ASN range=63634
@@ -272,7 +273,6 @@ add list=China_ASN range=63835
 add list=China_ASN range=63727
 add list=China_ASN range=63722
 add list=China_ASN range=63701
-add list=China_ASN range=63695
 add list=China_ASN range=63603
 add list=China_ASN range=63580
 add list=China_ASN range=59049
