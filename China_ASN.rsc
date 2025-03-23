@@ -1,8 +1,8 @@
 /routing/filter/num-list
 add list=China_ASN range=140731
 add list=China_ASN range=24429
-add list=China_ASN range=4134
 add list=China_ASN range=132203
+add list=China_ASN range=4134
 add list=China_ASN range=45102
 add list=China_ASN range=55967
 add list=China_ASN range=4837
@@ -82,7 +82,6 @@ add list=China_ASN range=17622
 add list=China_ASN range=150173
 add list=China_ASN range=140726
 add list=China_ASN range=138421
-add list=China_ASN range=9812
 add list=China_ASN range=9809
 add list=China_ASN range=63646
 add list=China_ASN range=63641
@@ -113,6 +112,7 @@ add list=China_ASN range=136173
 add list=China_ASN range=134773
 add list=China_ASN range=133219
 add list=China_ASN range=133119
+add list=China_ASN range=9812
 add list=China_ASN range=9394
 add list=China_ASN range=63617
 add list=China_ASN range=59083
@@ -442,7 +442,6 @@ add list=China_ASN range=131495
 add list=China_ASN range=131486
 add list=China_ASN range=131325
 add list=China_ASN range=9401
-add list=China_ASN range=64021
 add list=China_ASN range=63727
 add list=China_ASN range=63719
 add list=China_ASN range=63704
@@ -628,7 +627,6 @@ add list=China_ASN range=58336
 add list=China_ASN range=56004
 add list=China_ASN range=55962
 add list=China_ASN range=55641
-add list=China_ASN range=49904
 add list=China_ASN range=49575
 add list=China_ASN range=45576
 add list=China_ASN range=45275
@@ -4952,6 +4950,7 @@ add list=China_ASN range=142106
 add list=China_ASN range=142105
 add list=China_ASN range=142104
 add list=China_ASN range=142103
+add list=China_ASN range=142102
 add list=China_ASN range=142101
 add list=China_ASN range=142100
 add list=China_ASN range=142099
