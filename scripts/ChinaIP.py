@@ -11,15 +11,9 @@ Copyright © 2022 by Vincent, All Rights Reserved.
 
 import requests
 
-allChina = "https://raw.githubusercontent.com/cbuijs/ipasn/master/country-asia-china.list"
+v4China = "https://ispip.clang.cn/all_cn_geolite2.txt"
 
-v4China = "https://raw.githubusercontent.com/cbuijs/ipasn/master/country-asia-china4.list"
-
-v6China = "https://raw.githubusercontent.com/cbuijs/ipasn/master/country-asia-china6.list"
-
-r = requests.get(allChina) 
-with open("IP.China.list", "wb") as allChinaIP:
-         allChinaIP.write(r.content)
+v6China = "https://ispip.clang.cn/all_cn_ipv6.txt"
 
 r = requests.get(v4China) 
 with open("IPv4.China.list", "wb") as v4ChinaIP:
@@ -28,3 +22,9 @@ with open("IPv4.China.list", "wb") as v4ChinaIP:
 r = requests.get(v6China) 
 with open("IPv6.China.list", "wb") as v6ChinaIP:
          v6ChinaIP.write(r.content)
+
+with open("IP.China.list", "wb") as allIP:
+    with open("IPv4.China.list", "rb") as v4:
+        allIP.write(v4.read())
+    with open("IPv6.China.list", "rb") as v6:
+        allIP.write(v6.read())
