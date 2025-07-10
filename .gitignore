@@ -1,0 +1,9 @@
+# 忽略单个文件
+ASN.China.list
+China_ASN.rsc
+IP.China.list
+IPv4.China.list
+IPv6.China.list
+dbx_static_router.rsc
+static_address_list.rsc
+static_router.rsc
