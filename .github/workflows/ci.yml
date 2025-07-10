@@ -20,8 +20,9 @@ jobs:
 
     - name: Generate files
       run: |
-        python generate_rsc.py  # 你生成 .rsc 的脚本
-
+        python scripts/ChinaIP.py
+        python scripts/ChinaASN.py
+        python scripts/ChinaROS.py
     - name: Create Release Tag
       id: create_tag
       run: |
