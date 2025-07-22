@@ -10,12 +10,20 @@ with open("IPv4.China.list", "r") as f:
 # 网关或接口名称
 local_gateway="pppoe-out1"
 net_name = "l2tp-cn"
+wg_name = "wg-home"
 
 # 写 static_router.rsc
 with open("static_router.rsc", "w") as f:
     f.write("/ip route\n")
     for cidr in cidrs:
         f.write(f"add dst-address={cidr} gateway={local_gateway} comment=CN\n")
+
+# 写 wg_static_router.rsc
+with open("wg_static_router.rsc", "w") as f:
+    f.write("/ip route\n")
+    for cidr in cidrs:
+        f.write(f"add dst-address={cidr} gateway={wg_name} comment=CN\n")
+
 
 # 写 static_address_list.rsc
 with open("static_address_list.rsc", "w") as f:
