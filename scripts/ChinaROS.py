@@ -12,6 +12,7 @@ local_gateway="pppoe-out1"
 net_name = "l2tp-cn"
 wg_name = "wg-home"
 dxb_wg = "wg-hkcloud"
+hk_gw = "ext-cn"
 
 # 写 static_router.rsc
 with open("static_router.rsc", "w") as f:
@@ -30,6 +31,12 @@ with open("dxb_static_router.rsc", "w") as f:
     f.write("/ip route\n")
     for cidr in cidrs:
         f.write(f"add dst-address={cidr} distance=50 gateway={dxb_wg} comment=CN\n")
+
+# 写 hk_static_router.rsc
+with open("hk_static_router.rsc", "w") as f:
+    f.write("/ip route\n")
+    for cidr in cidrs:
+        f.write(f"add dst-address={cidr} distance=50 gateway={hk_gw} comment=CN\n")
 
 
 # 写 static_address_list.rsc
