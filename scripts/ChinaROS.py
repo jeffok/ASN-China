@@ -11,18 +11,25 @@ with open("IPv4.China.list", "r") as f:
 local_gateway="pppoe-out1"
 net_name = "l2tp-cn"
 wg_name = "wg-home"
+dxb_wg = "wg-hkcloud"
 
 # 写 static_router.rsc
 with open("static_router.rsc", "w") as f:
     f.write("/ip route\n")
     for cidr in cidrs:
-        f.write(f"add dst-address={cidr} gateway={local_gateway} comment=CN\n")
+        f.write(f"add dst-address={cidr} distance=50 gateway={local_gateway} comment=CN\n")
 
 # 写 wg_static_router.rsc
 with open("wg_static_router.rsc", "w") as f:
     f.write("/ip route\n")
     for cidr in cidrs:
-        f.write(f"add dst-address={cidr} gateway={wg_name} comment=CN\n")
+        f.write(f"add dst-address={cidr} distance=50 gateway={wg_name} comment=CN\n")
+
+# 写 dxb_static_router.rsc
+with open("dxb_static_router.rsc", "w") as f:
+    f.write("/ip route\n")
+    for cidr in cidrs:
+        f.write(f"add dst-address={cidr} distance=50 gateway={dxb_wg} comment=CN\n")
 
 
 # 写 static_address_list.rsc
