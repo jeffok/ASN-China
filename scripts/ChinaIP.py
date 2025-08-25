@@ -1,30 +1,48 @@
 '''
-Author: Vincent Young
+Author: Jeff
 Date: 2022-11-17 02:14:24
-LastEditors: Vincent Young
-LastEditTime: 2022-11-17 03:19:20
-FilePath: /ASN-China/syncIP.py
-Telegram: https://t.me/missuo
+LastEditors: Jeff
+LastEditTime: 2025-08-25 12:19:20
+FilePath: /ASN-China/ChinaIP.py
 
 Copyright © 2022 by Vincent, All Rights Reserved. 
 '''
 
 import requests
+import ipaddress
 
-v4China = "https://ispip.clang.cn/all_cn_geolite2.txt"
+# 地址（包含 IPv4 + IPv6）
+cn_url = "https://raw.githubusercontent.com/Loyalsoldier/geoip/release/text/cn.txt"
 
-v6China = "https://ispip.clang.cn/all_cn_ipv6.txt"
+# 下载数据
+r = requests.get(cn_url)
+lines = r.text.splitlines()
 
-r = requests.get(v4China) 
-with open("IPv4.China.list", "wb") as v4ChinaIP:
-         v4ChinaIP.write(r.content)
+# 分开存放 IPv4 和 IPv6
+ipv4_list = []
+ipv6_list = []
 
-r = requests.get(v6China) 
-with open("IPv6.China.list", "wb") as v6ChinaIP:
-         v6ChinaIP.write(r.content)
+for line in lines:
+    try:
+        net = ipaddress.ip_network(line.strip())
+        if isinstance(net, ipaddress.IPv4Network):
+            ipv4_list.append(line.strip())
+        elif isinstance(net, ipaddress.IPv6Network):
+            ipv6_list.append(line.strip())
+    except ValueError:
+        # 忽略非 IP 段的行（如果有）
+        continue
 
-with open("IP.China.list", "wb") as allIP:
-    with open("IPv4.China.list", "rb") as v4:
-        allIP.write(v4.read())
-    with open("IPv6.China.list", "rb") as v6:
-        allIP.write(v6.read())
+# 保存 IPv4
+with open("IPv4.China.list", "w") as f:
+    f.write("\n".join(ipv4_list))
+
+# 保存 IPv6
+with open("IPv6.China.list", "w") as f:
+    f.write("\n".join(ipv6_list))
+
+# 合并文件,
+with open("IP.China.list", "w") as f:
+    f.write("\n".join(ipv4_list + ipv6_list))
+
+print(f"共获取 IPv4 段 {len(ipv4_list)} 条，IPv6 段 {len(ipv6_list)} 条。")
