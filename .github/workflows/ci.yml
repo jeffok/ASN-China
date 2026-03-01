@@ -3,9 +3,9 @@ name: Build and Publish Generated Files
 on:
   push:
     branches: [main]
-  
+
   schedule:
-    - cron: '10 18 * * *'  # 每天 UTC 时间 18:10（北京时间 2:10）
+    - cron: '10 18 * * *'  # UTC 18:10 / Beijing 02:10
 
 jobs:
   build:
@@ -13,18 +13,17 @@ jobs:
 
     steps:
     - name: Checkout main branch
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
-        python-version: 3.x
+        python-version: '3.x'
 
     - name: Install dependencies
-      run: |
-        pip install requests lxml
+      run: pip install requests lxml
 
-    - name: Run scripts to generate files
+    - name: Generate IP lists and ROS scripts
       run: |
         python scripts/ChinaIP.py
         python scripts/ChinaASN.py

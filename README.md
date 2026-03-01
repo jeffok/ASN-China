@@ -1,75 +1,136 @@
-<!--
- * @Author: Vincent Young
- * @Date: 2022-11-17 02:07:33
- * @LastEditors: Vincent Young
- * @LastEditTime: 2022-11-17 03:33:16
- * @FilePath: /ASN-China/README.md
- * @Telegram: https://t.me/missuo
- * 
- * Copyright © 2022 by Vincent, All Rights Reserved. 
--->
 # ASN-China
-ASN and IP list in China library. UTC 20：00
 
-## Features
-- Automatic daily updates
-- Reliable and accurate source
+China ASN and IP prefix lists, auto-updated daily via GitHub Actions.
 
-## Routeros V7 BGP China_ASN
+## Generated Files
 
-### add script to Routeros 
+All files are published to the [`release-files`](https://github.com/jeffok/ASN-China/tree/release-files) branch.
 
-```
-/system script
-add name="Update_China_ASN" source={
-/log info "Fetching the script from the github."
-/tool fetch url="https://raw.githubusercontent.com/jeffok/ASN-China/main/China_ASN.rsc" mode=https dst-path="China_ASN.rsc" check-certificate=yes
-:delay 10s;
-/log info "Removing existing entries from num-list 'China_ASN'."
-/routing filter num-list/remove [find list="China_ASN"]
-/log info "Download complete, preparing to import the script."
-/import file-name="China_ASN.rsc"
-/log info "Script import completed successfully."
+### IP Lists (plain text, one CIDR per line)
+
+| File | Description |
+|------|-------------|
+| `IPv4.China.list` | China IPv4 prefixes |
+| `IPv6.China.list` | China IPv6 prefixes |
+| `IP.China.list` | IPv4 + IPv6 combined |
+
+### RouterOS Scripts (.rsc)
+
+| File | Description |
+|------|-------------|
+| `cn_routes.rsc` | Static routes for CN prefixes (no gateway, universal) |
+| `cn_address_list.rsc` | Firewall address-list entries (`list=CN`) |
+| `China_ASN.rsc` | BGP filter num-list for China ASNs |
+
+### ASN List
+
+| File | Description |
+|------|-------------|
+| `ASN.China.list` | China ASN list (Surge/Quantumult X format) |
+
+## RouterOS Usage
+
+### CN Static Routes
+
+`cn_routes.rsc` contains route entries **without gateway**, so every node can use the same file and set its own gateway after import.
+
+**Step 1 — Create the update script on your RouterOS device:**
+
+```routeros
+/system script add name="Update_CN_Routes" source={
+    :local filename "cn_routes.rsc"
+    :local url "https://raw.githubusercontent.com/jeffok/ASN-China/release-files/cn_routes.rsc"
+    :local commentTag "CN"
+    :local gateway "YOUR_GATEWAY"
+
+    :if ([:len [/file find name=$filename]] > 0) do={
+        /file remove $filename
+    }
+
+    :log info "Downloading $filename ..."
+    /tool fetch url=$url dst-path=$filename
+    :delay 5s
+
+    :log info "Removing old $commentTag routes ..."
+    /ip route remove [/ip route find comment=$commentTag]
+
+    :if ([:len [/file find name=$filename]] > 0) do={
+        :log info "Importing $filename ..."
+        /import file-name=$filename
+    } else={
+        :log error "Download failed: $filename not found"
+        :error "abort"
+    }
+
+    :log info "Setting gateway=$gateway for $commentTag routes ..."
+    /ip route set [/ip route find comment=$commentTag] gateway=$gateway
+
+    :log info "$commentTag routes updated."
 }
 ```
 
-### add scheduler
-```
-/system scheduler
-add name="daily_update_Chain_ASN" start-time="04:00:00" interval=1d on-event="Update_China_ASN"
+Replace `YOUR_GATEWAY` with the actual gateway for your node, for example:
 
-```
+| Node | Gateway |
+|------|---------|
+| hkcloud | `45.250.184.1` (ext-cn) |
+| szhome | `pppoe-cn` |
+| dxbhome | WG peer address to hkcloud |
 
-## Use in proxy app
-### Surge
-```
-[Rule]
-# > China ASN List
-RULE-SET, https://raw.githubusercontent.com/missuo/ASN-China/main/ASN.China.list, Direct
-```
+**Step 2 — Schedule daily updates:**
 
-### Quantumult X
-```
-[filter_remote]
-# China ASN List
-https://raw.githubusercontent.com/missuo/ASN-China/main/ASN.China.list, tag=ChinaASN, force-policy=direct, update-interval=86400, opt-parser=true, enabled=true
+```routeros
+/system scheduler add name="daily_cn_routes" start-time=03:00:00 interval=1d on-event="Update_CN_Routes"
 ```
 
+### CN Address List
 
-## Data Source
-### ASN Information
-- [bgp.he.net](https://bgp.he.net/country/CN)
+```routeros
+/system script add name="Update_CN_AddressList" source={
+    :local filename "cn_address_list.rsc"
+    :local url "https://raw.githubusercontent.com/jeffok/ASN-China/release-files/cn_address_list.rsc"
 
-### IP Information
-- [cbuijs/ipasn](https://github.com/cbuijs/ipasn)
+    :if ([:len [/file find name=$filename]] > 0) do={
+        /file remove $filename
+    }
 
-## Author's ASN
-**[AS206729](https://bgp.he.net/AS206729)**
+    /tool fetch url=$url dst-path=$filename
+    :delay 5s
 
-The ASN name has been officially changed in the Jan 20, 2022 UTC [Commit](https://github.com/missuo/ASN-China/commit/4345acd8e146c99d56792977d88ed1d6417c9e22).
+    /ip firewall address-list remove [/ip firewall address-list find list=CN comment=CN]
 
-## Author
+    :if ([:len [/file find name=$filename]] > 0) do={
+        /import file-name=$filename
+        :log info "CN address-list updated."
+    }
+}
+```
 
-**ASN-China** © [Vincent Young](https://github.com/missuo), Released under the [MIT](./LICENSE) License.<br>
+### China ASN (BGP filter)
 
+```routeros
+/system script add name="Update_China_ASN" source={
+    /tool fetch url="https://raw.githubusercontent.com/jeffok/ASN-China/release-files/China_ASN.rsc" dst-path="China_ASN.rsc"
+    :delay 10s
+    /routing filter num-list remove [find list="China_ASN"]
+    /import file-name="China_ASN.rsc"
+    :log info "China ASN list updated."
+}
 
+/system scheduler add name="daily_china_asn" start-time=04:00:00 interval=1d on-event="Update_China_ASN"
+```
+
+## Data Sources
+
+| Data | Source |
+|------|--------|
+| IP prefixes | [Loyalsoldier/geoip](https://github.com/Loyalsoldier/geoip) (aggregated from APNIC, MaxMind, etc.) |
+| ASN list | [bgp.he.net/country/CN](https://bgp.he.net/country/CN) |
+
+## Update Schedule
+
+GitHub Actions runs daily at **UTC 18:10 (Beijing 02:10)**. Files are force-pushed to the `release-files` branch.
+
+## License
+
+[MIT](./LICENSE)

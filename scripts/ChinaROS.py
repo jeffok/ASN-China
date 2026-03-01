@@ -1,91 +1,45 @@
-'''
-Author: Jeff
-'''
+"""
+Generate RouterOS .rsc files from IPv4.China.list (CN CIDR prefixes).
+
+Output files (gateway-free, universal for all nodes):
+  - cn_routes.rsc        : /ip route add entries (no gateway; each node sets its own after import)
+  - cn_address_list.rsc  : /ip firewall address-list entries
+"""
+
+INPUT_FILE = "IPv4.China.list"
+COMMENT = "CN"
+DISTANCE = 50
 
 
-# 读取 IP 列表
-with open("IPv4.China.list", "r") as f:
-    cidrs = [line.strip() for line in f if line.strip()]
-
-# 网关或接口名称
-local_gateway="pppoe-out1"
-net_name = "l2tp-cn"
-wg_name = "wg-home"
-dxb_wg = "wg-hkcloud"
-hk_gw = "ext-cn"
-
-# 写 static_router.rsc
-with open("static_router.rsc", "w") as f:
-    f.write("/ip route\n")
-    for cidr in cidrs:
-        f.write(f"add dst-address={cidr} distance=50 gateway={local_gateway} comment=CN\n")
-
-# 写 wg_static_router.rsc
-with open("wg_static_router.rsc", "w") as f:
-    f.write("/ip route\n")
-    for cidr in cidrs:
-        f.write(f"add dst-address={cidr} distance=50 gateway={wg_name} comment=CN\n")
-
-# 写 dxb_static_router.rsc
-with open("dxb_static_router.rsc", "w") as f:
-    f.write("/ip route\n")
-    for cidr in cidrs:
-        f.write(f"add dst-address={cidr} distance=50 gateway={dxb_wg} comment=CN\n")
-
-# 写 hk_static_router.rsc
-with open("hk_static_router.rsc", "w") as f:
-    f.write("/ip route\n")
-    for cidr in cidrs:
-        f.write(f"add dst-address={cidr} distance=50 gateway={hk_gw} comment=CN\n")
+def read_cidrs(path: str) -> list[str]:
+    with open(path, "r") as f:
+        return [line.strip() for line in f if line.strip()]
 
 
-# 写 static_address_list.rsc
-with open("static_address_list.rsc", "w") as f:
-    f.write("/ip firewall address-list\n")
-    for cidr in cidrs:
-        f.write(f"add list=CN address={cidr} comment=CN\n")
+def write_routes(cidrs: list[str], path: str) -> None:
+    with open(path, "w") as f:
+        f.write("/ip route\n")
+        for cidr in cidrs:
+            f.write(f"add dst-address={cidr} distance={DISTANCE} comment={COMMENT}\n")
 
-# 写 dbx_static_router.rsc
-with open("dbx_static_router.rsc", "w") as f:
-    f.write("/ip route\n")
-    # DC addresses
-    dc_routes = [
-        "66.22.212.0/22",
-        "66.22.218.0/23",
-        "185.151.204.0/24",
-        "162.159.128.232/29",
-        "162.159.129.232/29",
-        "162.159.130.232/29",
-        "162.159.133.232/29",
-        "162.159.134.232/29",
-        "162.159.135.232/29",
-        "162.159.136.232/29",
-        "162.159.137.232/29",
-        "162.159.138.232/29",
-    ]
-    for route in dc_routes:
-        f.write(f"add dst-address={route} gateway={net_name} comment=DC\n")
 
-    # Whatsapp
-    whatsapp_routes = [
-        "31.13.0.0/16",
-        "157.240.0.0/16"
-    ]
-    for route in whatsapp_routes:
-        f.write(f"add dst-address={route} gateway={net_name} comment=Whatsapp\n")
+def write_address_list(cidrs: list[str], path: str) -> None:
+    with open(path, "w") as f:
+        f.write("/ip firewall address-list\n")
+        for cidr in cidrs:
+            f.write(f"add list={COMMENT} address={cidr} comment={COMMENT}\n")
 
-    # Wechat
-    wechat_routes = [
-        "14.22.9.0/24",
-        "119.147.4.0/24",
-        "129.226.0.0/16",
-        "163.60.15.0/24",
-        "183.3.224.0/20",
-        "203.105.235.0/24"
-    ]
-    for route in wechat_routes:
-        f.write(f"add dst-address={route} gateway={net_name} comment=Wechat\n")
 
-    # China CIDRs
-    for cidr in cidrs:
-        f.write(f"add dst-address={cidr} gateway={net_name} comment=CN\n")
+def main() -> None:
+    cidrs = read_cidrs(INPUT_FILE)
+    print(f"Read {len(cidrs)} IPv4 CIDRs from {INPUT_FILE}")
+
+    write_routes(cidrs, "cn_routes.rsc")
+    print(f"Generated cn_routes.rsc ({len(cidrs)} entries)")
+
+    write_address_list(cidrs, "cn_address_list.rsc")
+    print(f"Generated cn_address_list.rsc ({len(cidrs)} entries)")
+
+
+if __name__ == "__main__":
+    main()
