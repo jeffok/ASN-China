@@ -5,7 +5,7 @@ on:
     branches: [main]
 
   schedule:
-    - cron: '10 18 * * *'  # UTC 18:10 / Beijing 02:10
+    - cron: '0 20 * * *'  # UTC 20:00 / Beijing 04:00
 
 jobs:
   build:
@@ -21,7 +21,7 @@ jobs:
         python-version: '3.x'
 
     - name: Install dependencies
-      run: pip install requests lxml
+      run: pip install requests
 
     - name: Generate IP lists and ROS scripts
       run: |
