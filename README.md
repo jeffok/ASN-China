@@ -35,6 +35,7 @@
 | `proxy-domains.txt` | 需代理域名 |
 | `gfw-domains.txt` | GFW 域名 |
 | `ai-domains.txt` | AI 域名（blackmatrix7 + 自定义补充） |
+| `bogus-nxdomain.china.conf` | 虚假 NXDOMAIN IP 过滤（dnsmasq/SmartDNS 格式） |
 
 ### RouterOS 脚本 (.rsc)
 

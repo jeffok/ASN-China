@@ -20,3 +20,4 @@ Thumbs.db
 # Generated files (if building locally)
 *.list
 *.rsc
+*.conf

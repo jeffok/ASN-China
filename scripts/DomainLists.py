@@ -19,6 +19,8 @@ SOURCES = {
     "apple-cn.txt": "https://raw.githubusercontent.com/Loyalsoldier/v2ray-rules-dat/release/apple-cn.txt",
     # Loyalsoldier 代理域名
     "proxy-list.txt": "https://raw.githubusercontent.com/Loyalsoldier/v2ray-rules-dat/release/proxy-list.txt",
+    # felixonmars 虚假 NXDOMAIN IP 过滤
+    "bogus-nxdomain.china.conf": "https://raw.githubusercontent.com/felixonmars/dnsmasq-china-list/master/bogus-nxdomain.china.conf",
 }
 
 
@@ -106,7 +108,15 @@ def main() -> None:
     proxy_domains = extract_domains_plain(text)
     proxy_sorted = sorted(set(proxy_domains))
     write_list(proxy_sorted, "proxy-domains.txt", "代理域名列表（每日更新）")
-    print(f"生成 proxy-domains.txt（{len(proxy_sorted)} 条）")
+    print(f"生成 proxy-domains.txt（{len(proxy_sorted)} 条）\n")
+
+    # --- 虚假 NXDOMAIN IP 过滤（直接下载保留原格式，dnsmasq/SmartDNS 直接 conf-file 引用）---
+    print("下载 bogus-nxdomain 列表...")
+    text = download(SOURCES["bogus-nxdomain.china.conf"])
+    with open("bogus-nxdomain.china.conf", "w") as f:
+        f.write(text)
+    lines = [l for l in text.splitlines() if l.strip() and not l.startswith("#")]
+    print(f"生成 bogus-nxdomain.china.conf（{len(lines)} 条）")
 
 
 if __name__ == "__main__":

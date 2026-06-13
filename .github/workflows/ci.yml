@@ -37,7 +37,7 @@ jobs:
     - name: Push generated files to release-files branch
       run: |
         mkdir generated
-        mv *.rsc *.list *.txt generated/ 2>/dev/null || true
+        mv *.rsc *.list *.txt *.conf generated/ 2>/dev/null || true
 
         cd generated
         git init
