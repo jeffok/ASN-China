@@ -16,6 +16,7 @@ build/
 # OS
 .DS_Store
 Thumbs.db
+.cursor/
 
 # Generated files (if building locally)
 *.list
