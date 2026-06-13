@@ -26,6 +26,16 @@
 | `IP.China.list` | IPv4 + IPv6 合并 |
 | `ASN.China.list` | 中国 ASN 列表（Surge/Quantumult X 格式） |
 
+### 域名列表（纯文本，每行一个域名，供 SmartDNS 等消费）
+
+| 文件 | 说明 |
+|------|------|
+| `cn-domains.txt` | 国内域名（Loyalsoldier + felixonmars 合并去重） |
+| `apple-cn.txt` | Apple 中国域名 |
+| `proxy-domains.txt` | 需代理域名 |
+| `gfw-domains.txt` | GFW 域名 |
+| `ai-domains.txt` | AI 域名（blackmatrix7 + 自定义补充） |
+
 ### RouterOS 脚本 (.rsc)
 
 | 文件 | 说明 |

@@ -116,6 +116,14 @@ def write_rsc(domains: list[str], path: str) -> None:
             )
 
 
+def write_txt(domains: list[str], path: str) -> None:
+    """生成纯域名文本列表（每行一个域名，供 SmartDNS 等消费）"""
+    with open(path, "w") as f:
+        f.write("# AI 域名列表（自动生成，每日更新）\n")
+        f.write("# https://github.com/jeffok/ASN-China\n")
+        f.write("\n".join(domains) + "\n")
+
+
 def main() -> None:
     all_domains = set()
 
@@ -135,6 +143,9 @@ def main() -> None:
 
     write_rsc(sorted_domains, OUTPUT_FILE)
     print(f"生成 {OUTPUT_FILE}")
+
+    write_txt(sorted_domains, "ai-domains.txt")
+    print(f"生成 ai-domains.txt（{len(sorted_domains)} 条）")
 
 
 if __name__ == "__main__":

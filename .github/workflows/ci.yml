@@ -32,6 +32,7 @@ jobs:
         python scripts/ChinaROS.py
         python scripts/DnsStaticGFW.py
         python scripts/DnsStaticAI.py
+        python scripts/DomainLists.py
 
     - name: Push generated files to release-files branch
       run: |

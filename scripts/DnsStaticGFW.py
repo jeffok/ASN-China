@@ -49,6 +49,14 @@ def write_rsc(domains: list[str], path: str) -> None:
             )
 
 
+def write_txt(domains: list[str], path: str) -> None:
+    """生成纯域名文本列表（每行一个域名，供 SmartDNS 等消费）"""
+    with open(path, "w") as f:
+        f.write("# GFW 域名列表（自动生成，每日更新）\n")
+        f.write("# https://github.com/jeffok/ASN-China\n")
+        f.write("\n".join(domains) + "\n")
+
+
 def main() -> None:
     print(f"下载 GFW 域名列表: {GFW_URL}")
     domains = download_domains(GFW_URL)
@@ -56,6 +64,9 @@ def main() -> None:
 
     write_rsc(domains, OUTPUT_FILE)
     print(f"生成 {OUTPUT_FILE}")
+
+    write_txt(domains, "gfw-domains.txt")
+    print(f"生成 gfw-domains.txt（{len(domains)} 条）")
 
 
 if __name__ == "__main__":
