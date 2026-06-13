@@ -1,60 +1,76 @@
 # ASN-China
 
-China ASN and IP prefix lists, auto-updated daily via GitHub Actions.
+中国 ASN、IP 段、GFW 域名、AI 域名的自动化整理与分发。
 
-## Generated Files
+每日通过 GitHub Actions 自动从上游数据源更新，生成 RouterOS 脚本及通用格式列表，发布到 [`release-files`](https://github.com/jeffok/ASN-China/tree/release-files) 分支。
 
-All files are published to the [`release-files`](https://github.com/jeffok/ASN-China/tree/release-files) branch.
+## 数据源
 
-### IP Lists (plain text, one CIDR per line)
+| 数据 | 来源 |
+|------|------|
+| 中国 IP 段 | [Loyalsoldier/geoip](https://github.com/Loyalsoldier/geoip)（聚合 APNIC、MaxMind 等） |
+| 中国 ASN | [APNIC delegated](https://ftp.apnic.net/apnic/stats/apnic/delegated-apnic-latest) |
+| GFW 域名 | [Loyalsoldier/v2ray-rules-dat](https://github.com/Loyalsoldier/v2ray-rules-dat) |
+| AI 域名 | [blackmatrix7/ios_rule_script](https://github.com/blackmatrix7/ios_rule_script) + 自定义补充 |
 
-| File | Description |
-|------|-------------|
-| `IPv4.China.list` | China IPv4 prefixes |
-| `IPv6.China.list` | China IPv6 prefixes |
-| `IP.China.list` | IPv4 + IPv6 combined |
+## 生成文件
 
-### RouterOS Scripts (.rsc)
+所有文件发布到 `release-files` 分支，可通过 raw URL 直接下载。
 
-| File | Description |
-|------|-------------|
-| `cn_routes.rsc` | Static routes for CN prefixes (no gateway, universal) |
-| `cn_address_list.rsc` | Firewall address-list entries (`list=CN`) |
-| `China_ASN.rsc` | BGP filter num-list for China ASNs |
+### 通用列表
 
-### ASN List
+| 文件 | 说明 |
+|------|------|
+| `IPv4.China.list` | 中国 IPv4 CIDR（纯文本，每行一条） |
+| `IPv6.China.list` | 中国 IPv6 CIDR |
+| `IP.China.list` | IPv4 + IPv6 合并 |
+| `ASN.China.list` | 中国 ASN 列表（Surge/Quantumult X 格式） |
 
-| File | Description |
-|------|-------------|
-| `ASN.China.list` | China ASN list (Surge/Quantumult X format) |
+### RouterOS 脚本 (.rsc)
 
-## RouterOS Usage
+| 文件 | 说明 |
+|------|------|
+| `cn_routes.rsc` | 中国 IP 静态路由（无网关，导入后自行设置） |
+| `cn_address_list.rsc` | 防火墙地址列表（`list=CN`） |
+| `China_ASN.rsc` | BGP 过滤 num-list（`list=China_ASN`） |
+| `dns_static_gfw.rsc` | GFW 域名 DNS 分流（FWD 到指定 DNS） |
+| `dns_static_ai.rsc` | AI 域名 DNS 分流（FWD 到指定 DNS） |
 
-### CN Static Routes
+## 更新调度
 
-`cn_routes.rsc` contains route entries **without gateway**, so every node can use the same file and set its own gateway after import.
+GitHub Actions 每日 UTC 20:00（北京时间 04:00）自动运行，生成文件 force-push 到 `release-files` 分支。
 
-**Step 1 — Create the update script on your RouterOS device:**
+## RouterOS 使用方法
+
+### 下载基础 URL
+
+```
+https://raw.githubusercontent.com/jeffok/ASN-China/release-files/
+```
+
+### 中国 IP 静态路由
+
+`cn_routes.rsc` 不包含网关，适用于所有节点。导入后为路由条目统一设置各节点自己的网关。
 
 ```routeros
-/system script add name="Update_CN_Routes" source={
+/system/script/add name="Update_CN_Routes" source={
     :local filename "cn_routes.rsc"
     :local url "https://raw.githubusercontent.com/jeffok/ASN-China/release-files/cn_routes.rsc"
     :local commentTag "CN"
     :local gateway "YOUR_GATEWAY"
 
-    :if ([:len [/file find name=$filename]] > 0) do={
-        /file remove $filename
+    :if ([:len [/file/find name=$filename]] > 0) do={
+        /file/remove $filename
     }
 
     :log info "Downloading $filename ..."
-    /tool fetch url=$url dst-path=$filename
+    /tool/fetch url=$url dst-path=$filename
     :delay 5s
 
     :log info "Removing old $commentTag routes ..."
-    /ip route remove [/ip route find comment=$commentTag]
+    /ip/route/remove [/ip/route/find comment=$commentTag]
 
-    :if ([:len [/file find name=$filename]] > 0) do={
+    :if ([:len [/file/find name=$filename]] > 0) do={
         :log info "Importing $filename ..."
         /import file-name=$filename
     } else={
@@ -63,73 +79,152 @@ All files are published to the [`release-files`](https://github.com/jeffok/ASN-C
     }
 
     :log info "Setting gateway=$gateway for $commentTag routes ..."
-    /ip route set [/ip route find comment=$commentTag] gateway=$gateway
+    /ip/route/set [/ip/route/find comment=$commentTag] gateway=$gateway
 
     :log info "$commentTag routes updated."
 }
 ```
 
-Replace `YOUR_GATEWAY` with the actual gateway for your node, for example:
+将 `YOUR_GATEWAY` 替换为实际网关，例如：
 
-| Node | Gateway |
-|------|---------|
-| hkcloud | `45.250.184.1` (ext-cn) |
+| 节点 | 网关 |
+|------|------|
+| hkcloud | `45.250.184.1`（ext-cn 接口） |
 | szhome | `pppoe-cn` |
-| dxbhome | WG peer address to hkcloud |
+| dxbhome | WireGuard peer 地址 |
 
-**Step 2 — Schedule daily updates:**
+定时任务：
 
 ```routeros
-/system scheduler add name="daily_cn_routes" start-time=03:00:00 interval=1d on-event="Update_CN_Routes"
+/system/scheduler/add name="daily_cn_routes" start-time=03:00:00 interval=1d on-event="Update_CN_Routes"
 ```
 
-### CN Address List
+### 中国 IP 防火墙地址列表
 
 ```routeros
-/system script add name="Update_CN_AddressList" source={
+/system/script/add name="Update_CN_AddressList" source={
     :local filename "cn_address_list.rsc"
     :local url "https://raw.githubusercontent.com/jeffok/ASN-China/release-files/cn_address_list.rsc"
 
-    :if ([:len [/file find name=$filename]] > 0) do={
-        /file remove $filename
+    :if ([:len [/file/find name=$filename]] > 0) do={
+        /file/remove $filename
     }
 
-    /tool fetch url=$url dst-path=$filename
+    /tool/fetch url=$url dst-path=$filename
     :delay 5s
 
-    /ip firewall address-list remove [/ip firewall address-list find list=CN comment=CN]
+    /ip/firewall/address-list/remove [/ip/firewall/address-list/find list=CN comment=CN]
 
-    :if ([:len [/file find name=$filename]] > 0) do={
+    :if ([:len [/file/find name=$filename]] > 0) do={
         /import file-name=$filename
         :log info "CN address-list updated."
     }
 }
 ```
 
-### China ASN (BGP filter)
+### China ASN（BGP 过滤）
 
 ```routeros
-/system script add name="Update_China_ASN" source={
-    /tool fetch url="https://raw.githubusercontent.com/jeffok/ASN-China/release-files/China_ASN.rsc" dst-path="China_ASN.rsc"
+/system/script/add name="Update_China_ASN" source={
+    :local filename "China_ASN.rsc"
+    :local url "https://raw.githubusercontent.com/jeffok/ASN-China/release-files/China_ASN.rsc"
+
+    :if ([:len [/file/find name=$filename]] > 0) do={
+        /file/remove $filename
+    }
+
+    /tool/fetch url=$url dst-path=$filename
     :delay 10s
-    /routing filter num-list remove [find list="China_ASN"]
-    /import file-name="China_ASN.rsc"
+
+    /routing/filter/num-list/remove [/routing/filter/num-list/find list="China_ASN"]
+    /import file-name=$filename
     :log info "China ASN list updated."
 }
 
-/system scheduler add name="daily_china_asn" start-time=04:00:00 interval=1d on-event="Update_China_ASN"
+/system/scheduler/add name="daily_china_asn" start-time=04:00:00 interval=1d on-event="Update_China_ASN"
 ```
 
-## Data Sources
+### GFW 域名 DNS 分流
 
-| Data | Source |
-|------|--------|
-| IP prefixes | [Loyalsoldier/geoip](https://github.com/Loyalsoldier/geoip) (aggregated from APNIC, MaxMind, etc.) |
-| ASN list | [bgp.he.net/country/CN](https://bgp.he.net/country/CN) |
+```routeros
+/system/script/add name="Update_DNS_GFW" source={
+    :local filename "dns_static_gfw.rsc"
+    :local url "https://raw.githubusercontent.com/jeffok/ASN-China/release-files/dns_static_gfw.rsc"
 
-## Update Schedule
+    :if ([:len [/file/find name=$filename]] > 0) do={
+        /file/remove $filename
+    }
 
-GitHub Actions runs daily at **UTC 18:10 (Beijing 02:10)**. Files are force-pushed to the `release-files` branch.
+    /tool/fetch url=$url dst-path=$filename
+    :delay 5s
+
+    :if ([:len [/file/find name=$filename]] > 0) do={
+        /import file-name=$filename
+        /file/remove $filename
+        :log info "GFW DNS rules updated."
+    }
+}
+
+/system/scheduler/add name="daily_dns_gfw" start-time=04:10:00 interval=1d on-event="Update_DNS_GFW"
+```
+
+### AI 域名 DNS 分流
+
+```routeros
+/system/script/add name="Update_DNS_AI" source={
+    :local filename "dns_static_ai.rsc"
+    :local url "https://raw.githubusercontent.com/jeffok/ASN-China/release-files/dns_static_ai.rsc"
+
+    :if ([:len [/file/find name=$filename]] > 0) do={
+        /file/remove $filename
+    }
+
+    /tool/fetch url=$url dst-path=$filename
+    :delay 5s
+
+    :if ([:len [/file/find name=$filename]] > 0) do={
+        /import file-name=$filename
+        /file/remove $filename
+        :log info "AI DNS rules updated."
+    }
+}
+
+/system/scheduler/add name="daily_dns_ai" start-time=04:20:00 interval=1d on-event="Update_DNS_AI"
+```
+
+> **注意：** DNS 静态规则较多时，需增大 DNS 缓存：
+>
+> ```routeros
+> /ip/dns/set cache-size=20480KiB
+> ```
+
+## 本地构建
+
+```bash
+pip install requests
+python scripts/ChinaIP.py
+python scripts/ChinaASN.py
+python scripts/ChinaROS.py
+python scripts/DnsStaticGFW.py
+python scripts/DnsStaticAI.py
+```
+
+## 项目结构
+
+```
+ASN-China/
+├── scripts/
+│   ├── ChinaASN.py          # 中国 ASN 列表生成
+│   ├── ChinaIP.py           # 中国 IP 段列表生成
+│   ├── ChinaROS.py          # RouterOS 路由/地址列表脚本生成
+│   ├── DnsStaticGFW.py      # GFW 域名 DNS 分流脚本生成
+│   └── DnsStaticAI.py       # AI 域名 DNS 分流脚本生成
+├── .github/workflows/
+│   └── ci.yml               # 每日自动构建
+├── .gitignore
+├── LICENSE
+└── README.md
+```
 
 ## License
 
