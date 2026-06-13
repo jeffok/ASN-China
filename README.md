@@ -100,9 +100,10 @@ https://raw.githubusercontent.com/jeffok/ASN-China/release-files/
 
 | 节点 | 网关 |
 |------|------|
-| hkcloud | `45.250.184.1`（ext-cn 接口） |
+| hkros | `45.250.184.1`（ext-cn 回国出口） |
 | szhome | `pppoe-cn` |
-| dxbhome | WireGuard peer 地址 |
+| bzhome | `pppoe-cn` |
+| sgpros | 走 hkros 转发（无需本地 CN 路由） |
 
 定时任务：
 
