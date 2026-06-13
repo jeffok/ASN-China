@@ -11,6 +11,7 @@
 | 中国 IP 段 | [Loyalsoldier/geoip](https://github.com/Loyalsoldier/geoip)（聚合 APNIC、MaxMind 等） |
 | 中国 ASN | [APNIC delegated](https://ftp.apnic.net/apnic/stats/apnic/delegated-apnic-latest) |
 | GFW 域名 | [Loyalsoldier/v2ray-rules-dat](https://github.com/Loyalsoldier/v2ray-rules-dat) |
+| GFW IP-CIDR | [blackmatrix7/ios_rule_script](https://github.com/blackmatrix7/ios_rule_script)（Telegram 等） |
 | AI 域名 | [blackmatrix7/ios_rule_script](https://github.com/blackmatrix7/ios_rule_script) + 自定义补充 |
 
 ## 生成文件
@@ -35,6 +36,7 @@
 | `proxy-domains.txt` | 需代理域名 |
 | `gfw-domains.txt` | GFW 域名 |
 | `ai-domains.txt` | AI 域名（blackmatrix7 + 自定义补充） |
+| `gfw-ip-cidrs.txt` | GFW 应用 IP-CIDR（Telegram 等硬编码 IP 直连的应用） |
 | `bogus-nxdomain.china.conf` | 虚假 NXDOMAIN IP 过滤（dnsmasq/SmartDNS 格式） |
 
 ### RouterOS 脚本 (.rsc)
@@ -46,6 +48,7 @@
 | `China_ASN.rsc` | BGP 过滤 num-list（`list=China_ASN`） |
 | `dns_static_gfw.rsc` | GFW 域名 DNS 分流（FWD 到指定 DNS） |
 | `dns_static_ai.rsc` | AI 域名 DNS 分流（FWD 到指定 DNS） |
+| `gfw_ip_list.rsc` | GFW 应用 IP-CIDR 地址列表（Telegram 等硬编码 IP 的应用） |
 
 ## 更新调度
 
@@ -219,6 +222,7 @@ python scripts/ChinaASN.py
 python scripts/ChinaROS.py
 python scripts/DnsStaticGFW.py
 python scripts/DnsStaticAI.py
+python scripts/GfwIpCidr.py
 ```
 
 ## 项目结构
@@ -230,7 +234,9 @@ ASN-China/
 │   ├── ChinaIP.py           # 中国 IP 段列表生成
 │   ├── ChinaROS.py          # RouterOS 路由/地址列表脚本生成
 │   ├── DnsStaticGFW.py      # GFW 域名 DNS 分流脚本生成
-│   └── DnsStaticAI.py       # AI 域名 DNS 分流脚本生成
+│   ├── DnsStaticAI.py       # AI 域名 DNS 分流脚本生成
+│   ├── GfwIpCidr.py         # GFW 应用 IP-CIDR 地址列表生成
+│   └── DomainLists.py       # 域名列表生成（SmartDNS 等）
 ├── .github/workflows/
 │   └── ci.yml               # 每日自动构建
 ├── .gitignore
