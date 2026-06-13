@@ -28,11 +28,13 @@ jobs:
         python scripts/ChinaIP.py
         python scripts/ChinaASN.py
         python scripts/ChinaROS.py
+        python scripts/DnsStaticGFW.py
+        python scripts/DnsStaticAI.py
 
     - name: Push generated files to release-files branch
       run: |
         mkdir generated
-        mv *.rsc *.list generated/ || true
+        mv *.rsc *.list *.txt generated/ 2>/dev/null || true
 
         cd generated
         git init
