@@ -1,16 +1,7 @@
 '''
 Author: Jeff
-Date: 2024-01-15 10:00:00
-LastEditors: Jeff
-LastEditTime: 2025-08-25 12:19:20
-FilePath: /ASN-China/scripts/ChinaROS.py
-
-功能: 基于中国 IPv4 段生成 RouterOS 路由和防火墙脚本
-输入文件: IPv4.China.list（由 ChinaIP.py 生成）
-输出文件:
-  - cn_routes.rsc       : 静态路由条目（不含网关，各节点导入后自行设置）
-  - cn_address_list.rsc : 防火墙地址列表条目（list=CN）
-
+Date: 2022-11-17
+Description: 基于中国 IPv4 段生成 RouterOS 静态路由和防火墙地址列表脚本
 Copyright © 2022 by Jeff, All Rights Reserved.
 '''
 

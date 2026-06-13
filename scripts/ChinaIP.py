@@ -1,17 +1,7 @@
 '''
 Author: Jeff
-Date: 2022-11-17 02:14:24
-LastEditors: Jeff
-LastEditTime: 2025-08-25 12:19:20
-FilePath: /ASN-China/scripts/ChinaIP.py
-
-功能: 从 Loyalsoldier/geoip 下载中国 IP 段，分离 IPv4/IPv6 并保存
-数据源: https://github.com/Loyalsoldier/geoip (聚合 APNIC、MaxMind 等)
-输出文件:
-  - IPv4.China.list  : 中国 IPv4 CIDR（每行一条）
-  - IPv6.China.list  : 中国 IPv6 CIDR
-  - IP.China.list    : IPv4 + IPv6 合并
-
+Date: 2022-11-17
+Description: 从 Loyalsoldier/geoip 下载中国 IP 段，分离 IPv4/IPv6 并保存为列表文件
 Copyright © 2022 by Jeff, All Rights Reserved.
 '''
 

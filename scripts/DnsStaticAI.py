@@ -1,21 +1,7 @@
 '''
 Author: Jeff
-Date: 2025-03-01 10:00:00
-LastEditors: Jeff
-LastEditTime: 2025-08-25 12:19:20
-FilePath: /ASN-China/scripts/DnsStaticAI.py
-
-功能: 生成 AI 域名的 RouterOS DNS 分流脚本
-数据源:
-  - blackmatrix7/ios_rule_script: OpenAI / Claude / Gemini / Copilot / Perplexity / Grok
-  - 自定义补充: Cursor / Kiro / X(Twitter) / Meta AI
-输出文件: dns_static_ai.rsc
-工作原理:
-  - 从 blackmatrix7 拉取各 AI 服务的 Surge 规则
-  - 只提取 DOMAIN 和 DOMAIN-SUFFIX 类型，忽略 IP-CIDR / IP-ASN / DOMAIN-KEYWORD
-  - 合并自定义补充域名
-  - 生成 /ip/dns/static 条目，将匹配域名 FWD 到指定 DNS
-
+Date: 2022-11-17
+Description: 生成 AI 域名的 RouterOS DNS 分流脚本，从 blackmatrix7 拉取规则并合并自定义域名
 Copyright © 2022 by Jeff, All Rights Reserved.
 '''
 

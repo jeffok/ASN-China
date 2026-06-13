@@ -1,18 +1,7 @@
 '''
 Author: Jeff
-Date: 2024-06-01 10:00:00
-LastEditors: Jeff
-LastEditTime: 2025-08-25 12:19:20
-FilePath: /ASN-China/scripts/DnsStaticGFW.py
-
-功能: 生成 GFW 域名的 RouterOS DNS 分流脚本
-数据源: Loyalsoldier/v2ray-rules-dat 的 gfw.txt
-输出文件: dns_static_gfw.rsc
-工作原理:
-  - 下载 GFW 域名列表
-  - 生成 /ip/dns/static 条目，将匹配域名 FWD 到指定 DNS
-  - 匹配的域名同时加入 address-list 用于路由策略
-
+Date: 2022-11-17
+Description: 生成 GFW 域名的 RouterOS DNS 分流脚本，将匹配域名 FWD 到指定 DNS
 Copyright © 2022 by Jeff, All Rights Reserved.
 '''
 

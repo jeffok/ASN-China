@@ -1,16 +1,7 @@
 '''
 Author: Jeff
-Date: 2024-01-15 10:00:00
-LastEditors: Jeff
-LastEditTime: 2025-08-25 12:19:20
-FilePath: /ASN-China/scripts/ChinaASN.py
-
-功能: 从 APNIC 委托文件提取中国 ASN 列表，生成多种格式
-数据源: https://ftp.apnic.net/apnic/stats/apnic/delegated-apnic-latest
-输出文件:
-  - ASN.China.list  : Surge/Quantumult X 格式（IP-ASN,编号）
-  - China_ASN.rsc   : RouterOS BGP 过滤 num-list 格式
-
+Date: 2022-11-17
+Description: 从 APNIC 委托文件提取中国 ASN 列表，生成 Surge 和 RouterOS 格式
 Copyright © 2022 by Jeff, All Rights Reserved.
 '''
 
