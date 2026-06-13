@@ -29,18 +29,39 @@ BLACKMATRIX7_SOURCES = {
 
 # 自定义补充域名（blackmatrix7 暂未收录）
 CUSTOM_DOMAINS = [
-    # Cursor
-    "cursor.sh",
-    "cursor.com",
-    "cursorapi.com",
-    "cursor-cdn.com",
-    "download.todesktop.com",
-    "anysphere-binaries.s3.us-east-1.amazonaws.com",
-    # Amazon Kiro
-    "kiro.dev",
+    # ====== Cursor（来源：cursor.com/docs/enterprise/network-configuration）======
+    "cursor.sh",          # *.cursor.sh 通配，含所有 api2/api3/api4/api5 子域
+    "cursor.com",         # 主站、下载
+    "cursorapi.com",      # *.cursorapi.com，含 marketplace
+    "cursor-cdn.com",     # CDN 资源
+    "download.todesktop.com",   # 客户端更新
+    "anysphere-binaries.s3.us-east-1.amazonaws.com",  # 安装包
+
+    # ====== Amazon Kiro（来源：kiro.dev/docs/privacy-and-security/firewalls）======
+    "kiro.dev",           # *.kiro.dev 通配（含所有 runtime/management/telemetry 子域）
+    "app.kiro.dev",       # 登录门户（match-subdomain 已覆盖，显式列出更安全）
+    # Cognito 认证
     "cognito-idp.us-east-1.amazonaws.com",
     "cognito-identity.us-east-1.amazonaws.com",
-    # X / Twitter（AI 功能相关）
+    # Amazon Q（Kiro 后端，legacy endpoint）
+    "q.us-east-1.amazonaws.com",
+    "q.eu-central-1.amazonaws.com",
+    # Stripe（订阅计费）
+    "billing.stripe.com",
+    "checkout.stripe.com",
+    # 扩展市场
+    "open-vsx.org",
+    "openvsx.eclipsecontent.org",
+
+    # ====== Claude（blackmatrix7 仅收录了 3 条，补充完整）======
+    "claudeusercontent.com",   # Claude 生成的图片/文件
+    "usefathom.com",           # 统计分析
+
+    # ====== Perplexity（blackmatrix7 暂无）======
+    "perplexity.ai",
+    "api.perplexity.ai",
+
+    # ====== X / Twitter（AI 功能相关）======
     "x.com",
     "api.x.com",
     "twitter.com",
@@ -49,11 +70,13 @@ CUSTOM_DOMAINS = [
     "abs.twimg.com",
     "pbs.twimg.com",
     "video.twimg.com",
-    # xAI / Grok
+
+    # ====== xAI / Grok ======
     "x.ai",
     "grok.com",
     "api.x.ai",
-    # Meta AI
+
+    # ====== Meta AI ======
     "meta.ai",
     "www.meta.ai",
 ]
