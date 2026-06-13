@@ -1,36 +1,48 @@
-"""
-Generate RouterOS dns-static .rsc file for AI domains.
+'''
+Author: Jeff
+Date: 2025-03-01 10:00:00
+LastEditors: Jeff
+LastEditTime: 2025-08-25 12:19:20
+FilePath: /ASN-China/scripts/DnsStaticAI.py
 
-从以下来源自动拉取并合并 AI 域名，无需手动维护：
+功能: 生成 AI 域名的 RouterOS DNS 分流脚本
+数据源:
   - blackmatrix7/ios_rule_script: OpenAI / Claude / Gemini / Copilot / Perplexity / Grok
-  - 自定义补充: Cursor / Kiro / X(Twitter)
+  - 自定义补充: Cursor / Kiro / X(Twitter) / Meta AI
+输出文件: dns_static_ai.rsc
+工作原理:
+  - 从 blackmatrix7 拉取各 AI 服务的 Surge 规则
+  - 只提取 DOMAIN 和 DOMAIN-SUFFIX 类型，忽略 IP-CIDR / IP-ASN / DOMAIN-KEYWORD
+  - 合并自定义补充域名
+  - 生成 /ip/dns/static 条目，将匹配域名 FWD 到指定 DNS
 
-只提取 DOMAIN 和 DOMAIN-SUFFIX 类型，忽略 IP-CIDR / IP-ASN / DOMAIN-KEYWORD。
+Copyright © 2022 by Jeff, All Rights Reserved.
+'''
 
-Output: dns_static_ai.rsc
-"""
-
-import re
 import requests
 
+# DNS 转发目标
 FORWARD_TO = "10.100.89.3"
+# 匹配域名加入的地址列表名称
 ADDRESS_LIST = "ai-sgp"
+# 规则标签（用于批量删除旧规则）
 COMMENT = "AI"
+# 输出文件
 OUTPUT_FILE = "dns_static_ai.rsc"
 
 # blackmatrix7 维护的 AI 规则来源
 BLACKMATRIX7_SOURCES = {
-    "OpenAI":    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Surge/OpenAI/OpenAI.list",
-    "Claude":    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Surge/Claude/Claude.list",
-    "Gemini":    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Surge/Gemini/Gemini.list",
-    "Copilot":   "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Surge/Copilot/Copilot.list",
-    "Perplexity":"https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Surge/Perplexity/Perplexity.list",
+    "OpenAI":     "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Surge/OpenAI/OpenAI.list",
+    "Claude":     "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Surge/Claude/Claude.list",
+    "Gemini":     "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Surge/Gemini/Gemini.list",
+    "Copilot":    "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Surge/Copilot/Copilot.list",
+    "Perplexity": "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Surge/Perplexity/Perplexity.list",
 }
 
-# 自定义补充域名（blackmatrix7 暂未收录）
+# 自定义补充域名（blackmatrix7 暂未收录或收录不全）
 CUSTOM_DOMAINS = [
     # ====== Cursor（来源：cursor.com/docs/enterprise/network-configuration）======
-    "cursor.sh",          # *.cursor.sh 通配，含所有 api2/api3/api4/api5 子域
+    "cursor.sh",          # *.cursor.sh 通配，含 api2/api3/api4/api5 子域
     "cursor.com",         # 主站、下载
     "cursorapi.com",      # *.cursorapi.com，含 marketplace
     "cursor-cdn.com",     # CDN 资源
@@ -38,12 +50,12 @@ CUSTOM_DOMAINS = [
     "anysphere-binaries.s3.us-east-1.amazonaws.com",  # 安装包
 
     # ====== Amazon Kiro（来源：kiro.dev/docs/privacy-and-security/firewalls）======
-    "kiro.dev",           # *.kiro.dev 通配（含所有 runtime/management/telemetry 子域）
-    "app.kiro.dev",       # 登录门户（match-subdomain 已覆盖，显式列出更安全）
+    "kiro.dev",           # *.kiro.dev 通配（runtime/management/telemetry）
+    "app.kiro.dev",       # 登录门户
     # Cognito 认证
     "cognito-idp.us-east-1.amazonaws.com",
     "cognito-identity.us-east-1.amazonaws.com",
-    # Amazon Q（Kiro 后端，legacy endpoint）
+    # Amazon Q（Kiro 后端）
     "q.us-east-1.amazonaws.com",
     "q.eu-central-1.amazonaws.com",
     # Stripe（订阅计费）
@@ -53,15 +65,15 @@ CUSTOM_DOMAINS = [
     "open-vsx.org",
     "openvsx.eclipsecontent.org",
 
-    # ====== Claude（blackmatrix7 仅收录了 3 条，补充完整）======
+    # ====== Claude 补充 ======
     "claudeusercontent.com",   # Claude 生成的图片/文件
     "usefathom.com",           # 统计分析
 
-    # ====== Perplexity（blackmatrix7 暂无）======
+    # ====== Perplexity 补充 ======
     "perplexity.ai",
     "api.perplexity.ai",
 
-    # ====== X / Twitter（AI 功能相关）======
+    # ====== X / Twitter ======
     "x.com",
     "api.x.com",
     "twitter.com",
@@ -100,15 +112,16 @@ def fetch_domains(url: str) -> list[str]:
             domains.append(line.split(",")[1].strip())
         elif line.startswith("DOMAIN,"):
             domains.append(line.split(",")[1].strip())
-        # 忽略 DOMAIN-KEYWORD, IP-CIDR, IP-ASN 等
+        # 忽略 DOMAIN-KEYWORD, IP-CIDR, IP-ASN 等类型
     return domains
 
 
 def write_rsc(domains: list[str], path: str) -> None:
-    """生成 ROS .rsc 导入脚本"""
+    """生成 RouterOS DNS 静态分流脚本"""
     with open(path, "w") as f:
-        f.write(f"/ip dns static remove [find where comment={COMMENT}]\n")
-        f.write("/ip dns static\n")
+        # 先删除旧规则
+        f.write(f"/ip/dns/static/remove [find where comment={COMMENT}]\n")
+        f.write("/ip/dns/static\n")
         for domain in domains:
             f.write(
                 f"add name={domain} type=FWD forward-to={FORWARD_TO} "

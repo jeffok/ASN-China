@@ -1,22 +1,32 @@
-"""
-Generate RouterOS dns-static .rsc file for GFW domains.
+'''
+Author: Jeff
+Date: 2024-06-01 10:00:00
+LastEditors: Jeff
+LastEditTime: 2025-08-25 12:19:20
+FilePath: /ASN-China/scripts/DnsStaticGFW.py
 
-Downloads geosite-gfw domain list from Loyalsoldier/v2ray-rules-dat,
-generates /ip dns static entries with:
-  - type=FWD
-  - forward-to=8.8.8.8
-  - address-list=hk-proxy
-  - match-subdomain=yes
+功能: 生成 GFW 域名的 RouterOS DNS 分流脚本
+数据源: Loyalsoldier/v2ray-rules-dat 的 gfw.txt
+输出文件: dns_static_gfw.rsc
+工作原理:
+  - 下载 GFW 域名列表
+  - 生成 /ip/dns/static 条目，将匹配域名 FWD 到指定 DNS
+  - 匹配的域名同时加入 address-list 用于路由策略
 
-Output: dns_static_gfw.rsc
-"""
+Copyright © 2022 by Jeff, All Rights Reserved.
+'''
 
 import requests
 
+# GFW 域名列表数据源
 GFW_URL = "https://raw.githubusercontent.com/Loyalsoldier/v2ray-rules-dat/release/gfw.txt"
+# 输出文件
 OUTPUT_FILE = "dns_static_gfw.rsc"
+# DNS 转发目标
 FORWARD_TO = "8.8.8.8"
+# 匹配域名加入的地址列表名称
 ADDRESS_LIST = "hk-proxy"
+# 规则标签（用于批量删除旧规则）
 COMMENT = "GFW"
 
 
@@ -29,7 +39,7 @@ def download_domains(url: str) -> list[str]:
         line = line.strip()
         if not line or line.startswith("#") or line.startswith("!"):
             continue
-        # v2ray-rules-dat 格式可能有前缀如 "full:" 或 "regexp:"，只保留纯域名
+        # v2ray-rules-dat 格式可能有 "full:" 或 "regexp:" 前缀，只保留纯域名
         if ":" in line:
             continue
         domains.append(line)
@@ -37,11 +47,11 @@ def download_domains(url: str) -> list[str]:
 
 
 def write_rsc(domains: list[str], path: str) -> None:
-    """生成 ROS .rsc 导入脚本"""
+    """生成 RouterOS DNS 静态分流脚本"""
     with open(path, "w") as f:
         # 先删除旧规则
-        f.write(f"/ip dns static remove [find where comment={COMMENT}]\n")
-        f.write("/ip dns static\n")
+        f.write(f"/ip/dns/static/remove [find where comment={COMMENT}]\n")
+        f.write("/ip/dns/static\n")
         for domain in domains:
             f.write(
                 f"add name={domain} type=FWD forward-to={FORWARD_TO} "
