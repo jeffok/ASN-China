@@ -32,6 +32,25 @@ console.anthropic.com
 claudeusercontent.com
 cdn.anthropic.com
 
+# Cursor / Anysphere
+# Official network allowlist: *.cursor.sh, *.cursor-cdn.com, *.cursorapi.com.
+cursor.com
+cursor.sh
+api2.cursor.sh
+api3.cursor.sh
+api4.cursor.sh
+api5.cursor.sh
+repo42.cursor.sh
+authenticate.cursor.sh
+authenticator.cursor.sh
+adminportal42.cursor.sh
+cursor-cdn.com
+cursorapi.com
+marketplace.cursorapi.com
+downloads.cursor.com
+anysphere.co
+anysphere-binaries.s3.us-east-1.amazonaws.com
+
 # Microsoft Copilot
 copilot.microsoft.com
 sydney.bing.com
