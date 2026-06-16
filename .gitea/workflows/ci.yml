@@ -26,14 +26,14 @@ jobs:
 
     - name: Generate IP lists and ROS scripts
       run: |
-        .venv/bin/python scripts/ChinaIP.py
-        .venv/bin/python scripts/ChinaASN.py
-        .venv/bin/python scripts/ChinaROS.py
-        .venv/bin/python scripts/DnsStaticGFW.py
-        .venv/bin/python scripts/DnsStaticAI.py
-        .venv/bin/python scripts/GfwIpCidr.py
-        .venv/bin/python scripts/DnsStaticProxy.py
-        .venv/bin/python scripts/DomainLists.py
+        timeout 90 .venv/bin/python -u scripts/ChinaIP.py
+        timeout 90 .venv/bin/python -u scripts/ChinaASN.py
+        timeout 30 .venv/bin/python -u scripts/ChinaROS.py
+        timeout 90 .venv/bin/python -u scripts/DnsStaticGFW.py
+        timeout 30 .venv/bin/python -u scripts/DnsStaticAI.py
+        timeout 90 .venv/bin/python -u scripts/GfwIpCidr.py
+        timeout 90 .venv/bin/python -u scripts/DnsStaticProxy.py
+        timeout 90 .venv/bin/python -u scripts/DomainLists.py
 
     - name: Push generated files to release-files branch
       run: |
