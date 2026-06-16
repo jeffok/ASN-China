@@ -7,6 +7,9 @@ on:
   schedule:
     - cron: '0 20 * * *'  # UTC 20:00 / Beijing 04:00
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -46,5 +49,5 @@ jobs:
         git add .
         git commit -m "Update generated files"
         git branch -M release-files
-        git remote add origin https://x-access-token:${{ secrets.GITEA_TOKEN }}@gitea.jeffok.com:4443/jeff/asn-china.git
+        git remote add origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@gitea.jeffok.com:4443/jeff/asn-china.git
         git push --force origin release-files
