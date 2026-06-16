@@ -16,15 +16,12 @@ jobs:
 
     steps:
     - name: Checkout main branch
-      uses: actions/checkout@v4
-
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.x'
+      run: |
+        git clone --depth 1 --branch main "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY.git" .
 
     - name: Install dependencies
-      run: pip install requests
+      run: |
+        python3 -m pip install --user requests || pip3 install --user requests
 
     - name: Generate IP lists and ROS scripts
       run: |
@@ -49,5 +46,5 @@ jobs:
         git add .
         git commit -m "Update generated files"
         git branch -M release-files
-        git remote add origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@gitea.jeffok.com:4443/jeff/asn-china.git
+        git remote add origin "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@gitea.jeffok.com:4443/jeff/asn-china.git"
         git push --force origin release-files
