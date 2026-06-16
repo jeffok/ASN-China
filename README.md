@@ -12,7 +12,7 @@
 | 中国 ASN | [APNIC delegated](https://ftp.apnic.net/apnic/stats/apnic/delegated-apnic-latest) |
 | GFW 域名 | [Loyalsoldier/v2ray-rules-dat](https://github.com/Loyalsoldier/v2ray-rules-dat) |
 | GFW IP-CIDR | [blackmatrix7/ios_rule_script](https://github.com/blackmatrix7/ios_rule_script)（Telegram 等） |
-| AI 域名 | [blackmatrix7/ios_rule_script](https://github.com/blackmatrix7/ios_rule_script) + 自定义补充 |
+| AI 域名 | `scripts/ai_allowlist.txt` 人工审核维护，参考 blackmatrix7、MetaCubeX、VPSDance、v2fly 等开源方案后保守纳入 |
 
 ## 生成文件
 
@@ -35,7 +35,7 @@
 | `apple-cn.txt` | Apple 中国域名 |
 | `proxy-domains.txt` | 需代理域名 |
 | `gfw-domains.txt` | GFW 域名 |
-| `ai-domains.txt` | AI 域名（blackmatrix7 + 自定义补充） |
+| `ai-domains.txt` | AI 域名（人工审核 allowlist，供 SmartDNS `ai` 组和 `sync-ai.sh` 使用） |
 | `gfw-ip-cidrs.txt` | GFW 应用 IP-CIDR（Telegram 等硬编码 IP 直连的应用） |
 | `bogus-nxdomain.china.conf` | 虚假 NXDOMAIN IP 过滤（dnsmasq/SmartDNS 格式） |
 
@@ -47,7 +47,8 @@
 | `cn_address_list.rsc` | 防火墙地址列表（`list=CN`） |
 | `China_ASN.rsc` | BGP 过滤 num-list（`list=China_ASN`） |
 | `dns_static_gfw.rsc` | GFW 域名 DNS 分流（FWD 到指定 DNS） |
-| `dns_static_ai.rsc` | AI 域名 DNS 分流（FWD 到指定 DNS） |
+| `dns_static_ai.rsc` | AI 域名 DNS 分流（兼容产物，不作为 hkros 主链路） |
+| `dns_static_proxy.rsc` | 边缘 RouterOS 使用的统一代理 DNS 分流（GFW + AI，FWD 到 hkros SmartDNS） |
 | `gfw_ip_list.rsc` | GFW 应用 IP-CIDR 地址列表（Telegram 等硬编码 IP 的应用） |
 
 ## 更新调度
@@ -183,7 +184,33 @@ https://raw.githubusercontent.com/jeffok/ASN-China/release-files/
 /system/scheduler/add name="daily_dns_gfw" start-time=04:10:00 interval=1d on-event="Update_DNS_GFW"
 ```
 
-### AI 域名 DNS 分流
+### 边缘 RouterOS 代理域名 DNS 分流
+
+`szhome`、`devros` 等边缘路由器推荐导入 `dns_static_proxy.rsc`。边缘只把需要代理的域名交给 hkros SmartDNS（默认 `10.100.50.222`），并把解析结果加入 `hk-proxy`，不再在边缘维护 AI 域名或 `ai-sgp` 分流。
+
+```routeros
+/system/script/add name="Update_DNS_Proxy" source={
+    :local filename "dns_static_proxy.rsc"
+    :local url "https://raw.githubusercontent.com/jeffok/ASN-China/release-files/dns_static_proxy.rsc"
+
+    :if ([:len [/file/find name=$filename]] > 0) do={
+        /file/remove $filename
+    }
+
+    /tool/fetch url=$url dst-path=$filename
+    :delay 5s
+
+    :if ([:len [/file/find name=$filename]] > 0) do={
+        /import file-name=$filename
+        /file/remove $filename
+        :log info "Proxy DNS rules updated."
+    }
+}
+
+/system/scheduler/add name="daily_dns_proxy" start-time=04:10:00 interval=1d on-event="Update_DNS_Proxy"
+```
+
+### AI 域名 DNS 分流（兼容）
 
 ```routeros
 /system/script/add name="Update_DNS_AI" source={
@@ -223,6 +250,7 @@ python scripts/ChinaROS.py
 python scripts/DnsStaticGFW.py
 python scripts/DnsStaticAI.py
 python scripts/GfwIpCidr.py
+python scripts/DnsStaticProxy.py
 ```
 
 ## 项目结构
@@ -236,7 +264,9 @@ ASN-China/
 │   ├── DnsStaticGFW.py      # GFW 域名 DNS 分流脚本生成
 │   ├── DnsStaticAI.py       # AI 域名 DNS 分流脚本生成
 │   ├── GfwIpCidr.py         # GFW 应用 IP-CIDR 地址列表生成
-│   └── DomainLists.py       # 域名列表生成（SmartDNS 等）
+│   ├── DnsStaticProxy.py    # 边缘代理域名 DNS 分流脚本生成
+│   ├── DomainLists.py       # 域名列表生成（SmartDNS 等）
+│   └── ai_allowlist.txt     # AI 域名人工审核 allowlist
 ├── .github/workflows/
 │   └── ci.yml               # 每日自动构建
 ├── .gitignore

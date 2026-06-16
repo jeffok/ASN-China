@@ -1,0 +1,66 @@
+# AI domains for smartdns group ai / hkros ai-sgp
+# Keep this list intentionally conservative to reduce shared-IP collateral routing.
+
+# OpenAI / ChatGPT
+openai.com
+chat.openai.com
+chatgpt.com
+auth0.openai.com
+auth.openai.com
+api.openai.com
+platform.openai.com
+developers.openai.com
+help.openai.com
+files.openai.com
+oaiusercontent.com
+oaistatic.com
+cdn.oaistatic.com
+cdn.openai.com
+ios.chat.openai.com
+android.chat.openai.com
+sora.com
+
+# Google Gemini
+# Avoid broad googleapis.com / gstatic.com / google.com entries because they share IPs with non-AI Google services.
+gemini.google.com
+bard.google.com
+
+# Anthropic / Claude
+claude.ai
+api.anthropic.com
+console.anthropic.com
+claudeusercontent.com
+cdn.anthropic.com
+
+# Microsoft Copilot
+copilot.microsoft.com
+sydney.bing.com
+edgeservices.bing.com
+
+# Perplexity AI
+perplexity.ai
+www.perplexity.ai
+api.perplexity.ai
+
+# xAI / Grok
+x.ai
+grok.com
+api.x.ai
+
+# Meta AI
+meta.ai
+www.meta.ai
+
+# X / Twitter (used by Grok/X AI flows)
+x.com
+api.x.com
+twitter.com
+api.twitter.com
+t.co
+help.twitter.com
+help.x.com
+abs.twimg.com
+pbs.twimg.com
+video.twimg.com
+upload.twitter.com
+upload.x.com

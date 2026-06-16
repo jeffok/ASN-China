@@ -33,6 +33,7 @@ jobs:
         python scripts/DnsStaticGFW.py
         python scripts/DnsStaticAI.py
         python scripts/GfwIpCidr.py
+        python scripts/DnsStaticProxy.py
         python scripts/DomainLists.py
 
     - name: Push generated files to release-files branch
