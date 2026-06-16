@@ -34,15 +34,29 @@ cdn.anthropic.com
 
 # Cursor / Anysphere
 # Official network allowlist: *.cursor.sh, *.cursor-cdn.com, *.cursorapi.com.
+# SmartDNS ai-list also gets suffix entries (.cursor.sh etc.) via DnsStaticAI.py.
 cursor.com
 cursor.sh
 api2.cursor.sh
+api2geo.cursor.sh
+api2direct.cursor.sh
 api3.cursor.sh
 api4.cursor.sh
 api5.cursor.sh
+agent.api5.cursor.sh
+agentn.api5.cursor.sh
+agent.us.api5.cursor.sh
+agentn.us.api5.cursor.sh
+agent.global.api5.cursor.sh
+agentn.global.api5.cursor.sh
+us-asia.gcpp.cursor.sh
+us-eu.gcpp.cursor.sh
+us-only.gcpp.cursor.sh
 repo42.cursor.sh
 authenticate.cursor.sh
 authenticator.cursor.sh
+authentication.cursor.sh
+prod.authentication.cursor.sh
 adminportal42.cursor.sh
 cursor-cdn.com
 cursorapi.com

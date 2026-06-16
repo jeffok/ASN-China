@@ -19,6 +19,14 @@ OUTPUT_FILE = "dns_static_ai.rsc"
 SCRIPT_DIR = Path(__file__).resolve().parent
 ALLOWLIST_FILE = SCRIPT_DIR / "ai_allowlist.txt"
 
+# SmartDNS domain-set suffix entries (leading dot = domain + all subdomains).
+# These are written to ai-domains.txt only, not RouterOS static rules.
+SMARTDNS_SUFFIX_ENTRIES = (
+    ".cursor.sh",
+    ".cursor-cdn.com",
+    ".cursorapi.com",
+)
+
 
 def load_domains(path: Path = ALLOWLIST_FILE) -> list[str]:
     """加载人工审核后的 AI 域名 allowlist。"""
@@ -38,6 +46,8 @@ def write_rsc(domains: list[str], path: str) -> None:
         f.write(f"/ip/dns/static/remove [find where comment={COMMENT}]\n")
         f.write("/ip/dns/static\n")
         for domain in domains:
+            if domain.startswith("."):
+                continue
             f.write(
                 f"add name={domain} type=FWD forward-to={FORWARD_TO} "
                 f"address-list={ADDRESS_LIST} match-subdomain=yes "
@@ -47,10 +57,12 @@ def write_rsc(domains: list[str], path: str) -> None:
 
 def write_txt(domains: list[str], path: str) -> None:
     """生成纯域名文本列表（每行一个域名，供 SmartDNS 等消费）"""
+    smartdns_domains = sorted(set(domains) | set(SMARTDNS_SUFFIX_ENTRIES))
     with open(path, "w") as f:
         f.write("# AI 域名列表（自动生成，每日更新）\n")
         f.write("# https://gitea.jeffok.com:4443/jeff/asn-china\n")
-        f.write("\n".join(domains) + "\n")
+        f.write("# Lines starting with '.' are SmartDNS suffix matches.\n")
+        f.write("\n".join(smartdns_domains) + "\n")
 
 
 def main() -> None:
