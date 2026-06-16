@@ -27,7 +27,7 @@ jobs:
     - name: Generate IP lists and ROS scripts
       run: |
         .venv/bin/python -u scripts/ChinaIP.py
-        .venv/bin/python -u scripts/ChinaASN.py
+        timeout 75 .venv/bin/python -u scripts/ChinaASN.py
         .venv/bin/python -u scripts/ChinaROS.py
         .venv/bin/python -u scripts/DnsStaticGFW.py
         .venv/bin/python -u scripts/DnsStaticAI.py
