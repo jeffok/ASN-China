@@ -53,7 +53,7 @@ def write_txt(domains: list[str], path: str) -> None:
     """生成纯域名文本列表（每行一个域名，供 SmartDNS 等消费）"""
     with open(path, "w") as f:
         f.write("# GFW 域名列表（自动生成，每日更新）\n")
-        f.write("# https://github.com/jeffok/ASN-China\n")
+        f.write("# https://gitea.jeffok.com:4443/jeff/asn-china\n")
         f.write("\n".join(domains) + "\n")
 
 

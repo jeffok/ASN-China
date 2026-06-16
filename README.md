@@ -2,7 +2,7 @@
 
 中国 ASN、IP 段、GFW 域名、AI 域名的自动化整理与分发。
 
-每日通过 GitHub Actions 自动从上游数据源更新，生成 RouterOS 脚本及通用格式列表，发布到 [`release-files`](https://github.com/jeffok/ASN-China/tree/release-files) 分支。
+每日通过自建 Gitea Actions 自动从上游数据源更新，生成 RouterOS 脚本及通用格式列表，发布到 [`release-files`](https://gitea.jeffok.com:4443/jeff/asn-china/src/branch/release-files) 分支。
 
 ## 数据源
 
@@ -53,14 +53,14 @@
 
 ## 更新调度
 
-GitHub Actions 每日 UTC 20:00（北京时间 04:00）自动运行，生成文件 force-push 到 `release-files` 分支。
+Gitea Actions 每日 UTC 20:00（北京时间 04:00）自动运行，生成文件 force-push 到 `release-files` 分支。
 
 ## RouterOS 使用方法
 
 ### 下载基础 URL
 
 ```
-https://raw.githubusercontent.com/jeffok/ASN-China/release-files/
+https://gitea.jeffok.com:4443/jeff/asn-china/raw/branch/release-files/
 ```
 
 ### 中国 IP 静态路由
@@ -70,7 +70,7 @@ https://raw.githubusercontent.com/jeffok/ASN-China/release-files/
 ```routeros
 /system/script/add name="Update_CN_Routes" source={
     :local filename "cn_routes.rsc"
-    :local url "https://raw.githubusercontent.com/jeffok/ASN-China/release-files/cn_routes.rsc"
+    :local url "https://gitea.jeffok.com:4443/jeff/asn-china/raw/branch/release-files/cn_routes.rsc"
     :local commentTag "CN"
     :local gateway "YOUR_GATEWAY"
 
@@ -120,7 +120,7 @@ https://raw.githubusercontent.com/jeffok/ASN-China/release-files/
 ```routeros
 /system/script/add name="Update_CN_AddressList" source={
     :local filename "cn_address_list.rsc"
-    :local url "https://raw.githubusercontent.com/jeffok/ASN-China/release-files/cn_address_list.rsc"
+    :local url "https://gitea.jeffok.com:4443/jeff/asn-china/raw/branch/release-files/cn_address_list.rsc"
 
     :if ([:len [/file/find name=$filename]] > 0) do={
         /file/remove $filename
@@ -143,7 +143,7 @@ https://raw.githubusercontent.com/jeffok/ASN-China/release-files/
 ```routeros
 /system/script/add name="Update_China_ASN" source={
     :local filename "China_ASN.rsc"
-    :local url "https://raw.githubusercontent.com/jeffok/ASN-China/release-files/China_ASN.rsc"
+    :local url "https://gitea.jeffok.com:4443/jeff/asn-china/raw/branch/release-files/China_ASN.rsc"
 
     :if ([:len [/file/find name=$filename]] > 0) do={
         /file/remove $filename
@@ -165,7 +165,7 @@ https://raw.githubusercontent.com/jeffok/ASN-China/release-files/
 ```routeros
 /system/script/add name="Update_DNS_GFW" source={
     :local filename "dns_static_gfw.rsc"
-    :local url "https://raw.githubusercontent.com/jeffok/ASN-China/release-files/dns_static_gfw.rsc"
+    :local url "https://gitea.jeffok.com:4443/jeff/asn-china/raw/branch/release-files/dns_static_gfw.rsc"
 
     :if ([:len [/file/find name=$filename]] > 0) do={
         /file/remove $filename
@@ -191,7 +191,7 @@ https://raw.githubusercontent.com/jeffok/ASN-China/release-files/
 ```routeros
 /system/script/add name="Update_DNS_Proxy" source={
     :local filename "dns_static_proxy.rsc"
-    :local url "https://raw.githubusercontent.com/jeffok/ASN-China/release-files/dns_static_proxy.rsc"
+    :local url "https://gitea.jeffok.com:4443/jeff/asn-china/raw/branch/release-files/dns_static_proxy.rsc"
 
     :if ([:len [/file/find name=$filename]] > 0) do={
         /file/remove $filename
@@ -215,7 +215,7 @@ https://raw.githubusercontent.com/jeffok/ASN-China/release-files/
 ```routeros
 /system/script/add name="Update_DNS_AI" source={
     :local filename "dns_static_ai.rsc"
-    :local url "https://raw.githubusercontent.com/jeffok/ASN-China/release-files/dns_static_ai.rsc"
+    :local url "https://gitea.jeffok.com:4443/jeff/asn-china/raw/branch/release-files/dns_static_ai.rsc"
 
     :if ([:len [/file/find name=$filename]] > 0) do={
         /file/remove $filename
@@ -267,7 +267,7 @@ ASN-China/
 │   ├── DnsStaticProxy.py    # 边缘代理域名 DNS 分流脚本生成
 │   ├── DomainLists.py       # 域名列表生成（SmartDNS 等）
 │   └── ai_allowlist.txt     # AI 域名人工审核 allowlist
-├── .github/workflows/
+├── .gitea/workflows/
 │   └── ci.yml               # 每日自动构建
 ├── .gitignore
 ├── LICENSE

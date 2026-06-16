@@ -63,7 +63,7 @@ def write_list(domains: list[str], path: str, header: str) -> None:
     """保存域名列表"""
     with open(path, "w") as f:
         f.write(f"# {header}\n")
-        f.write("# https://github.com/jeffok/ASN-China\n")
+        f.write("# https://gitea.jeffok.com:4443/jeff/asn-china\n")
         f.write("\n".join(domains) + "\n")
 
 

@@ -37,7 +37,7 @@ def write_surge_list(asns: list[int], path: str) -> None:
     with open(path, "w") as f:
         f.write(f"// 中国 ASN 列表（数据源：APNIC delegated）\n")
         f.write(f"// 更新时间: UTC {ts}\n")
-        f.write(f"// https://github.com/jeffok/ASN-China\n\n")
+        f.write(f"// https://gitea.jeffok.com:4443/jeff/asn-china\n\n")
         for asn in asns:
             f.write(f"IP-ASN,{asn}\n")
 

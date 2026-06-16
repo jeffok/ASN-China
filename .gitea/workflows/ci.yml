@@ -3,9 +3,7 @@ name: Build and Publish Generated Files
 on:
   push:
     branches: [main]
-
   workflow_dispatch:
-
   schedule:
     - cron: '0 20 * * *'  # UTC 20:00 / Beijing 04:00
 
@@ -43,10 +41,10 @@ jobs:
 
         cd generated
         git init
-        git config user.name "github-actions"
-        git config user.email "actions@github.com"
+        git config user.name "gitea-actions"
+        git config user.email "actions@gitea.jeffok.com"
         git add .
         git commit -m "Update generated files"
         git branch -M release-files
-        git remote add origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
+        git remote add origin https://x-access-token:${{ secrets.GITEA_TOKEN }}@gitea.jeffok.com:4443/jeff/asn-china.git
         git push --force origin release-files

@@ -95,7 +95,7 @@ def write_txt(cidrs: list[str], path: str) -> None:
     with open(path, "w") as f:
         f.write("# GFW 应用 IP-CIDR 列表（自动生成，每日更新）\n")
         f.write("# 用于硬编码 IP 直连的应用（如 Telegram）\n")
-        f.write("# https://github.com/jeffok/ASN-China\n")
+        f.write("# https://gitea.jeffok.com:4443/jeff/asn-china\n")
         f.write("\n".join(cidrs) + "\n")
 
 
