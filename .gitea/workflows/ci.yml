@@ -21,18 +21,19 @@ jobs:
 
     - name: Install dependencies
       run: |
-        python3 -m pip install --user requests || pip3 install --user requests
+        python3 -m venv .venv
+        .venv/bin/python -m pip install requests
 
     - name: Generate IP lists and ROS scripts
       run: |
-        python scripts/ChinaIP.py
-        python scripts/ChinaASN.py
-        python scripts/ChinaROS.py
-        python scripts/DnsStaticGFW.py
-        python scripts/DnsStaticAI.py
-        python scripts/GfwIpCidr.py
-        python scripts/DnsStaticProxy.py
-        python scripts/DomainLists.py
+        .venv/bin/python scripts/ChinaIP.py
+        .venv/bin/python scripts/ChinaASN.py
+        .venv/bin/python scripts/ChinaROS.py
+        .venv/bin/python scripts/DnsStaticGFW.py
+        .venv/bin/python scripts/DnsStaticAI.py
+        .venv/bin/python scripts/GfwIpCidr.py
+        .venv/bin/python scripts/DnsStaticProxy.py
+        .venv/bin/python scripts/DomainLists.py
 
     - name: Push generated files to release-files branch
       run: |
