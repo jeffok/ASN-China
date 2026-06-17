@@ -14,6 +14,8 @@ Description: 生成 AI 域名的 RouterOS DNS 分流脚本（边缘 + hkros 两�
 Copyright © 2022 by Jeff, All Rights Reserved.
 '''
 
+from __future__ import annotations  # 兼容 Python 3.9 runner
+
 from pathlib import Path
 
 SCRIPT_DIR = Path(__file__).resolve().parent

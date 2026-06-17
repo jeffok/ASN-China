@@ -8,6 +8,8 @@ Description: 生成代理域名分流产物（统一源 = Loyalsoldier proxy-lis
 Copyright © 2026 by Jeff, All Rights Reserved.
 '''
 
+from __future__ import annotations  # 兼容 Python 3.9 runner：延迟注解，str|None/list[str] 不在运行时求值
+
 from pathlib import Path
 
 import requests
