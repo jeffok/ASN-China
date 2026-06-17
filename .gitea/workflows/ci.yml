@@ -27,6 +27,8 @@ jobs:
         .venv/bin/python -m pip install requests tldextract
 
     - name: Generate IP lists and ROS scripts
+      env:
+        ASN_CHINA_CI: "1"
       run: |
         .venv/bin/python -u scripts/ChinaIP.py
         timeout 75 .venv/bin/python -u scripts/ChinaASN.py

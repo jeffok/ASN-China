@@ -10,6 +10,7 @@ Copyright © 2026 by Jeff, All Rights Reserved.
 
 from __future__ import annotations  # 兼容 Python 3.9 runner：延迟注解，str|None/list[str] 不在运行时求值
 
+import os
 from pathlib import Path
 
 import requests
@@ -133,6 +134,9 @@ def download_popularity() -> list[str]:
     import io
     import zipfile
 
+    if os.environ.get("ASN_CHINA_CI") == "1":
+        return load_popularity_fallback("CI 环境跳过在线热门排名")
+
     raw = None
     for name, url in POPULARITY_URLS:
         try:
@@ -157,14 +161,18 @@ def download_popularity() -> list[str]:
         print(f"  在线热门注册域去重后: {len(ordered)} 条")
         return ordered
 
-    # 在线全部失败 → 用仓库内置兜底（已是 rank 序的注册域）
+    return load_popularity_fallback("在线源不可达")
+
+
+def load_popularity_fallback(reason: str) -> list[str]:
+    # 在线不可用或 CI 明确跳过 → 用仓库内置兜底（已是 rank 序的注册域）
     if POPULARITY_FALLBACK_FILE.exists():
         fallback = [
             line.strip()
             for line in POPULARITY_FALLBACK_FILE.read_text().splitlines()
             if line.strip() and not line.startswith("#")
         ]
-        print(f"  在线源不可达，使用内置兜底 popularity_fallback.txt: {len(fallback)} 条")
+        print(f"  {reason}，使用内置兜底 popularity_fallback.txt: {len(fallback)} 条")
         return fallback
 
     print("  警告：在线源与内置兜底均不可用，跳过山石精简表生成（不中断构建）")
