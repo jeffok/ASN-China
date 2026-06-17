@@ -44,7 +44,7 @@ def download(url: str) -> str:
     last_exc: Exception | None = None
     for u in urls:
         try:
-            r = requests.get(u, timeout=60)
+            r = requests.get(u, timeout=10)
             r.raise_for_status()
             return r.text
         except Exception as e:

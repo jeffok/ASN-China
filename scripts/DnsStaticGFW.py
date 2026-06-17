@@ -42,7 +42,7 @@ def download_domains(url: str) -> list[str]:
     text = None
     for u in urls:
         try:
-            r = requests.get(u, timeout=60)
+            r = requests.get(u, timeout=10)
             r.raise_for_status()
             text = r.text
             break

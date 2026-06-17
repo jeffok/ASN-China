@@ -66,7 +66,7 @@ def _to_jsdelivr(url: str) -> str | None:
     return None
 
 
-def download(url: str, timeout: int = 60) -> bytes:
+def download(url: str, timeout: int = 10) -> bytes:
     cdn = _to_jsdelivr(url)
     urls = [cdn, url] if cdn else [url]
     last_exc: Exception | None = None
