@@ -22,7 +22,7 @@ jobs:
     - name: Install dependencies
       run: |
         python3 -m venv .venv
-        .venv/bin/python -m pip install requests
+        .venv/bin/python -m pip install requests tldextract
 
     - name: Generate IP lists and ROS scripts
       run: |
@@ -32,7 +32,7 @@ jobs:
         .venv/bin/python -u scripts/DnsStaticGFW.py
         .venv/bin/python -u scripts/DnsStaticAI.py
         .venv/bin/python -u scripts/GfwIpCidr.py
-        .venv/bin/python -u scripts/DnsStaticProxy.py
+        .venv/bin/python -u scripts/ProxyDomains.py
         .venv/bin/python -u scripts/DomainLists.py
 
     - name: Push generated files to release-files branch

@@ -22,3 +22,5 @@ Thumbs.db
 *.list
 *.rsc
 *.conf
+# Generated domain txt at repo root (scripts/*.txt sources stay tracked)
+/*.txt

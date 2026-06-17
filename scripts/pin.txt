@@ -1,0 +1,120 @@
+# Pinned registrable domains — 必保留代理域名（注册域级，*.domain 通配）
+# 这些域名强制并入 ROS 全量表与山石精简表，不受热门排名裁剪影响。
+# 仅放真正必须走代理的核心海外域名；不要放国内 CDN 域名。
+
+# Google 系
+google.com
+youtube.com
+googlevideo.com
+ytimg.com
+ggpht.com
+gstatic.com
+googleusercontent.com
+googleapis.com
+gvt1.com
+gvt2.com
+withgoogle.com
+translate.goog
+usercontent.goog
+goog
+
+# GitHub
+github.com
+githubusercontent.com
+githubassets.com
+ghcr.io
+
+# Telegram
+telegram.org
+t.me
+telegram.me
+telesco.pe
+cdn-telegram.org
+
+# X / Twitter / Meta
+twitter.com
+x.com
+twimg.com
+t.co
+facebook.com
+fbcdn.net
+instagram.com
+cdninstagram.com
+whatsapp.com
+whatsapp.net
+
+# 知识 / 媒体
+wikipedia.org
+wikimedia.org
+medium.com
+quora.com
+stackoverflow.com
+stackexchange.com
+bbc.com
+nytimes.com
+reuters.com
+bloomberg.com
+
+# AI（注册域级兜底，AI 精确主机由 ai_allowlist.txt 维护）
+openai.com
+chatgpt.com
+oaistatic.com
+oaiusercontent.com
+claude.ai
+anthropic.com
+perplexity.ai
+x.ai
+grok.com
+cursor.com
+cursor.sh
+cursorapi.com
+cursor-cdn.com
+meta.ai
+
+# 基础设施 / 开发
+cloudflare.com
+cloudflare-dns.com
+cloudfront.net
+docker.com
+docker.io
+pypi.org
+pythonhosted.org
+npmjs.com
+wireguard.com
+
+# 社区 / 流媒体 / 协作
+reddit.com
+redd.it
+redditstatic.com
+discord.com
+discord.gg
+discordapp.com
+discordapp.net
+spotify.com
+scdn.co
+netflix.com
+nflxvideo.net
+vimeo.com
+twitch.tv
+ttvnw.net
+notion.so
+figma.com
+slack.com
+zoom.us
+dropbox.com
+dropboxusercontent.com
+imgur.com
+pinterest.com
+tumblr.com
+duckduckgo.com
+bing.com
+microsoft.com
+live.com
+office.com
+proton.me
+protonmail.com
+
+# 日本媒体
+nicovideo.jp
+dmc.nico
+pixiv.net
