@@ -18,13 +18,17 @@ import tldextract
 PROXY_URL = "https://raw.githubusercontent.com/Loyalsoldier/v2ray-rules-dat/release/proxy-list.txt"
 # gfw.txt 并入以保证对历史方案 100% 向后兼容（严格超集）
 GFW_URL = "https://raw.githubusercontent.com/Loyalsoldier/v2ray-rules-dat/release/gfw.txt"
-# 热门排名（用于山石精简）。主源 Umbrella，备源 Tranco。
-UMBRELLA_URL = "http://s3-us-west-1.amazonaws.com/umbrella-static/top-1m.csv.zip"
-TRANCO_URL = "https://tranco-list.eu/top-1m.csv.zip"
+# 热门排名（用于山石精简）。多源在线 + 仓库内置兜底（CI runner 一定能读到 clone 下来的仓库）。
+POPULARITY_URLS = (
+    ("Umbrella-https", "https://s3-us-west-1.amazonaws.com/umbrella-static/top-1m.csv.zip"),
+    ("Umbrella-http", "http://s3-us-west-1.amazonaws.com/umbrella-static/top-1m.csv.zip"),
+    ("Tranco", "https://tranco-list.eu/top-1m.csv.zip"),
+)
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 AI_ALLOWLIST_FILE = SCRIPT_DIR / "ai_allowlist.txt"
 PIN_FILE = SCRIPT_DIR / "pin.txt"
+POPULARITY_FALLBACK_FILE = SCRIPT_DIR / "popularity_fallback.txt"   # 内置兜底（rank 序）
 
 # ── 产物参数 ────────────────────────────────────────────────────────────
 ROS_OUTPUT = "dns_static_proxy.rsc"
@@ -90,11 +94,15 @@ def load_ai_registrable() -> set[str]:
 
 
 def download_popularity() -> list[str]:
-    """返回按热度排序、去重的注册域列表（rank 升序）。"""
+    """返回按热度排序、去重的注册域列表（rank 升序）。
+
+    在线多源 → 仓库内置兜底 → 空列表（非致命，山石表跳过但不中断构建）。
+    """
     import io
     import zipfile
 
-    for name, url in (("Umbrella", UMBRELLA_URL), ("Tranco", TRANCO_URL)):
+    raw = None
+    for name, url in POPULARITY_URLS:
         try:
             print(f"下载热门排名: {name} {url}")
             blob = download(url)
@@ -103,21 +111,32 @@ def download_popularity() -> list[str]:
             break
         except Exception as exc:  # noqa: BLE001
             print(f"  {name} 失败: {exc}")
-            raw = None
-    if raw is None:
-        raise RuntimeError("热门排名主备源均不可用，无法生成山石精简表")
 
-    ordered, seen = [], set()
-    for line in raw.splitlines():
-        parts = line.strip().split(",", 1)
-        if len(parts) != 2:
-            continue
-        r = registrable(parts[1])
-        if r and r not in seen:
-            seen.add(r)
-            ordered.append(r)
-    print(f"  热门注册域去重后: {len(ordered)} 条")
-    return ordered
+    if raw is not None:
+        ordered, seen = [], set()
+        for line in raw.splitlines():
+            parts = line.strip().split(",", 1)
+            if len(parts) != 2:
+                continue
+            r = registrable(parts[1])
+            if r and r not in seen:
+                seen.add(r)
+                ordered.append(r)
+        print(f"  在线热门注册域去重后: {len(ordered)} 条")
+        return ordered
+
+    # 在线全部失败 → 用仓库内置兜底（已是 rank 序的注册域）
+    if POPULARITY_FALLBACK_FILE.exists():
+        fallback = [
+            line.strip()
+            for line in POPULARITY_FALLBACK_FILE.read_text().splitlines()
+            if line.strip() and not line.startswith("#")
+        ]
+        print(f"  在线源不可达，使用内置兜底 popularity_fallback.txt: {len(fallback)} 条")
+        return fallback
+
+    print("  警告：在线源与内置兜底均不可用，跳过山石精简表生成（不中断构建）")
+    return []
 
 
 def write_ros(domains: list[str]) -> None:
@@ -161,6 +180,9 @@ def main() -> None:
 
     # 山石精简：热门交集（按热度截断）+ pin + AI，去重，≤3000
     pop = download_popularity()
+    if not pop:
+        print(f"跳过 {HILLSTONE_OUTPUT}（无热门排名数据）")
+        return
     inter = [d for d in pop if d in full]
     keep = HILLSTONE_TARGET - len(pin | ai_reg)
     keep = max(keep, 0)
