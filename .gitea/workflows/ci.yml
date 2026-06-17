@@ -21,7 +21,9 @@ jobs:
 
     - name: Install dependencies
       run: |
-        python3 -m venv .venv
+        python3.12 --version
+        python3.12 -m venv .venv
+        .venv/bin/python --version
         .venv/bin/python -m pip install requests tldextract
 
     - name: Generate IP lists and ROS scripts

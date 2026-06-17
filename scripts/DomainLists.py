@@ -5,6 +5,8 @@ Description: 下载并合并国内域名、Apple 域名、代理域名列表，�
 Copyright © 2022 by Jeff, All Rights Reserved.
 '''
 
+from __future__ import annotations
+
 import re
 import requests
 
@@ -32,6 +34,7 @@ SOURCES = {
     # felixonmars 虚假 NXDOMAIN IP 过滤
     "bogus-nxdomain.china.conf": "https://raw.githubusercontent.com/felixonmars/dnsmasq-china-list/master/bogus-nxdomain.china.conf",
 }
+RELEASE_RAW_BASE = "https://gitea.jeffok.com:4443/jeff/asn-china/raw/branch/release-files"
 
 
 def download(url: str) -> str:
@@ -48,6 +51,21 @@ def download(url: str) -> str:
             print(f"  ⚠ {u} 失败: {e}")
             last_exc = e
     raise RuntimeError(f"所有镜像均失败: {url}") from last_exc
+
+
+def download_release_file(name: str) -> str:
+    url = f"{RELEASE_RAW_BASE}/{name}"
+    r = requests.get(url, timeout=60)
+    r.raise_for_status()
+    return r.text
+
+
+def download_or_release(url: str, fallback_file: str) -> str:
+    try:
+        return download(url)
+    except Exception as exc:
+        print(f"  外部源不可达，回退到 release-files/{fallback_file}: {exc}")
+        return download_release_file(fallback_file)
 
 
 def extract_domains_plain(text: str) -> list[str]:
@@ -91,23 +109,27 @@ def main() -> None:
     print("下载国内域名列表...")
     cn_domains = set()
 
-    # Loyalsoldier direct-list
-    text = download(SOURCES["direct-list.txt"])
-    domains = extract_domains_plain(text)
-    print(f"  direct-list.txt: {len(domains)} 条")
-    cn_domains.update(domains)
+    try:
+        # Loyalsoldier direct-list
+        text = download(SOURCES["direct-list.txt"])
+        domains = extract_domains_plain(text)
+        print(f"  direct-list.txt: {len(domains)} 条")
+        cn_domains.update(domains)
 
-    # felixonmars accelerated-domains.china.conf
-    text = download(SOURCES["accelerated-domains.china.conf"])
-    domains = extract_domains_dnsmasq(text)
-    print(f"  accelerated-domains.china.conf: {len(domains)} 条")
-    cn_domains.update(domains)
+        # felixonmars accelerated-domains.china.conf
+        text = download(SOURCES["accelerated-domains.china.conf"])
+        domains = extract_domains_dnsmasq(text)
+        print(f"  accelerated-domains.china.conf: {len(domains)} 条")
+        cn_domains.update(domains)
 
-    # felixonmars apple.china.conf
-    text = download(SOURCES["apple.china.conf"])
-    domains = extract_domains_dnsmasq(text)
-    print(f"  apple.china.conf: {len(domains)} 条")
-    cn_domains.update(domains)
+        # felixonmars apple.china.conf
+        text = download(SOURCES["apple.china.conf"])
+        domains = extract_domains_dnsmasq(text)
+        print(f"  apple.china.conf: {len(domains)} 条")
+        cn_domains.update(domains)
+    except Exception as exc:
+        print(f"  国内域名外部源不可达，回退到 release-files/cn-domains.txt: {exc}")
+        cn_domains = set(extract_domains_plain(download_release_file("cn-domains.txt")))
 
     cn_sorted = sorted(cn_domains)
     write_list(cn_sorted, "cn-domains.txt", "国内域名列表（合并去重，每日更新）")
@@ -115,7 +137,7 @@ def main() -> None:
 
     # --- Apple 中国域名 ---
     print("下载 Apple 中国域名...")
-    text = download(SOURCES["apple-cn.txt"])
+    text = download_or_release(SOURCES["apple-cn.txt"], "apple-cn.txt")
     apple_domains = extract_domains_plain(text)
     apple_sorted = sorted(set(apple_domains))
     write_list(apple_sorted, "apple-cn.txt", "Apple 中国域名列表（每日更新）")
@@ -123,7 +145,7 @@ def main() -> None:
 
     # --- 代理域名 ---
     print("下载代理域名列表...")
-    text = download(SOURCES["proxy-list.txt"])
+    text = download_or_release(SOURCES["proxy-list.txt"], "proxy-domains.txt")
     proxy_domains = extract_domains_plain(text)
     proxy_sorted = sorted(set(proxy_domains))
     write_list(proxy_sorted, "proxy-domains.txt", "代理域名列表（每日更新）")
@@ -131,7 +153,7 @@ def main() -> None:
 
     # --- 虚假 NXDOMAIN IP 过滤（直接下载保留原格式，dnsmasq/SmartDNS 直接 conf-file 引用）---
     print("下载 bogus-nxdomain 列表...")
-    text = download(SOURCES["bogus-nxdomain.china.conf"])
+    text = download_or_release(SOURCES["bogus-nxdomain.china.conf"], "bogus-nxdomain.china.conf")
     with open("bogus-nxdomain.china.conf", "w") as f:
         f.write(text)
     lines = [l for l in text.splitlines() if l.strip() and not l.startswith("#")]

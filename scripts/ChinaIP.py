@@ -5,6 +5,8 @@ Description: 从 Loyalsoldier/geoip 下载中国 IP 段，分离 IPv4/IPv6 并�
 Copyright © 2022 by Jeff, All Rights Reserved.
 '''
 
+from __future__ import annotations
+
 import re
 import requests
 import ipaddress
@@ -35,9 +37,17 @@ def download(url: str, timeout: int = 60) -> str:
 
 # 中国 IP 段数据源（包含 IPv4 + IPv6）
 cn_url = "https://raw.githubusercontent.com/Loyalsoldier/geoip/release/text/cn.txt"
+fallback_ip_url = (
+    "https://gitea.jeffok.com:4443/jeff/asn-china/raw/branch/"
+    "release-files/IP.China.list"
+)
 
 # 下载数据
-text = download(cn_url)
+try:
+    text = download(cn_url)
+except Exception as exc:
+    print(f"外部中国 IP 源不可达，回退到 release-files: {exc}", flush=True)
+    text = download(fallback_ip_url)
 lines = text.splitlines()
 
 # 分开存放 IPv4 和 IPv6

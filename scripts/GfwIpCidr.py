@@ -6,6 +6,8 @@ Description: 生成 GFW 相关应用的 IP-CIDR 地址列表 RouterOS 脚本
 Copyright © 2025 by Jeff, All Rights Reserved.
 '''
 
+from __future__ import annotations
+
 import ipaddress
 import re
 import requests
@@ -33,6 +35,10 @@ MAX_PREFIX_SIZE = 16
 SOURCES = {
     "Telegram": "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Surge/Telegram/Telegram.list",
 }
+FALLBACK_CIDRS_URL = (
+    "https://gitea.jeffok.com:4443/jeff/asn-china/raw/branch/"
+    "release-files/gfw-ip-cidrs.txt"
+)
 
 # 自定义补充 IP-CIDR（上游未收录或需要手动维护的）
 CUSTOM_CIDRS = [
@@ -68,6 +74,17 @@ def fetch_ip_cidrs(url: str) -> list[str]:
                 cidrs.append(cidr)
         # 忽略 IP-CIDR6、DOMAIN、IP-ASN 等
     return cidrs
+
+
+def fetch_fallback_cidrs() -> list[str]:
+    print(f"回退到 release-files/gfw-ip-cidrs.txt: {FALLBACK_CIDRS_URL}")
+    r = requests.get(FALLBACK_CIDRS_URL, timeout=60)
+    r.raise_for_status()
+    return [
+        line.strip()
+        for line in r.text.splitlines()
+        if line.strip() and not line.startswith("#")
+    ]
 
 
 def validate_cidrs(cidrs: list[str], source_name: str) -> list[str]:
@@ -131,6 +148,9 @@ def main() -> None:
     if CUSTOM_CIDRS:
         valid = validate_cidrs(CUSTOM_CIDRS, "Custom")
         all_cidrs.update(valid)
+
+    if not all_cidrs:
+        all_cidrs.update(validate_cidrs(fetch_fallback_cidrs(), "release-files"))
 
     # 排序（按 IP 地址排序）
     sorted_cidrs = sorted(all_cidrs, key=lambda x: ipaddress.ip_network(x, strict=False))

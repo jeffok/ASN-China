@@ -26,6 +26,7 @@ POPULARITY_URLS = (
     ("Umbrella-http", "http://s3-us-west-1.amazonaws.com/umbrella-static/top-1m.csv.zip"),
     ("Tranco", "https://tranco-list.eu/top-1m.csv.zip"),
 )
+RELEASE_RAW_BASE = "https://gitea.jeffok.com:4443/jeff/asn-china/raw/branch/release-files"
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 AI_ALLOWLIST_FILE = SCRIPT_DIR / "ai_allowlist.txt"
@@ -78,6 +79,17 @@ def download(url: str, timeout: int = 60) -> bytes:
             print(f"  ⚠ {u} 失败: {e}")
             last_exc = e
     raise RuntimeError(f"所有镜像均失败: {url}") from last_exc
+
+
+def download_or_release(url: str, fallback_file: str) -> bytes:
+    try:
+        return download(url)
+    except Exception as exc:
+        fallback_url = f"{RELEASE_RAW_BASE}/{fallback_file}"
+        print(f"  外部源不可达，回退到 release-files/{fallback_file}: {exc}")
+        r = requests.get(fallback_url, timeout=60)
+        r.raise_for_status()
+        return r.content
 
 
 def parse_domain_list(text: str) -> set[str]:
@@ -179,10 +191,10 @@ def write_plaintext(domains: list[str], path: str, header: str) -> None:
 
 def main() -> None:
     print(f"下载代理源: {PROXY_URL}")
-    proxy = parse_domain_list(download(PROXY_URL).decode("utf-8", "ignore"))
+    proxy = parse_domain_list(download_or_release(PROXY_URL, "proxy-domains.txt").decode("utf-8", "ignore"))
     print(f"  proxy-list 塌缩注册域: {len(proxy)}")
     print(f"下载 GFW 源（向后兼容）: {GFW_URL}")
-    gfw = parse_domain_list(download(GFW_URL).decode("utf-8", "ignore"))
+    gfw = parse_domain_list(download_or_release(GFW_URL, "gfw-domains.txt").decode("utf-8", "ignore"))
     print(f"  gfw.txt 塌缩注册域: {len(gfw)}")
 
     ai_reg = load_ai_registrable()

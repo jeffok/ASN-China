@@ -5,6 +5,8 @@ Description: 生成 GFW 域名的 RouterOS DNS 分流脚本，将匹配域名 FW
 Copyright © 2022 by Jeff, All Rights Reserved.
 '''
 
+from __future__ import annotations
+
 import re
 import requests
 
@@ -19,6 +21,10 @@ def _to_jsdelivr(url: str) -> str | None:
 
 # GFW 域名列表数据源
 GFW_URL = "https://raw.githubusercontent.com/Loyalsoldier/v2ray-rules-dat/release/gfw.txt"
+FALLBACK_GFW_DOMAINS_URL = (
+    "https://gitea.jeffok.com:4443/jeff/asn-china/raw/branch/"
+    "release-files/gfw-domains.txt"
+)
 # 输出文件
 OUTPUT_FILE = "dns_static_gfw.rsc"
 # DNS 转发目标
@@ -43,7 +49,10 @@ def download_domains(url: str) -> list[str]:
         except Exception as e:
             print(f"  ⚠ {u} 失败: {e}")
     if text is None:
-        raise RuntimeError(f"所有镜像均失败: {url}")
+        print(f"  外部 GFW 域名源不可达，回退到 release-files: {FALLBACK_GFW_DOMAINS_URL}")
+        r = requests.get(FALLBACK_GFW_DOMAINS_URL, timeout=60)
+        r.raise_for_status()
+        text = r.text
     domains = []
     for line in text.splitlines():
         line = line.strip()
