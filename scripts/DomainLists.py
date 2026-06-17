@@ -5,7 +5,17 @@ Description: 下载并合并国内域名、Apple 域名、代理域名列表，�
 Copyright © 2022 by Jeff, All Rights Reserved.
 '''
 
+import re
 import requests
+
+
+def _to_jsdelivr(url: str) -> str | None:
+    m = re.match(r'https://raw\.githubusercontent\.com/([^/]+)/([^/]+)/([^/]+)/(.*)', url)
+    if m:
+        user, repo, branch, path = m.groups()
+        return f"https://cdn.jsdelivr.net/gh/{user}/{repo}@{branch}/{path}"
+    return None
+
 
 # 数据源
 SOURCES = {
@@ -25,10 +35,19 @@ SOURCES = {
 
 
 def download(url: str) -> str:
-    """下载文件内容"""
-    r = requests.get(url, timeout=30)
-    r.raise_for_status()
-    return r.text
+    """下载文件内容（jsDelivr 主源，github 备源）"""
+    cdn = _to_jsdelivr(url)
+    urls = [cdn, url] if cdn else [url]
+    last_exc: Exception | None = None
+    for u in urls:
+        try:
+            r = requests.get(u, timeout=60)
+            r.raise_for_status()
+            return r.text
+        except Exception as e:
+            print(f"  ⚠ {u} 失败: {e}")
+            last_exc = e
+    raise RuntimeError(f"所有镜像均失败: {url}") from last_exc
 
 
 def extract_domains_plain(text: str) -> list[str]:

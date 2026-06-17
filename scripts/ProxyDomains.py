@@ -56,10 +56,28 @@ def registrable(domain: str) -> str | None:
     return None
 
 
+def _to_jsdelivr(url: str) -> str | None:
+    import re
+    m = re.match(r'https://raw\.githubusercontent\.com/([^/]+)/([^/]+)/([^/]+)/(.*)', url)
+    if m:
+        user, repo, branch, path = m.groups()
+        return f"https://cdn.jsdelivr.net/gh/{user}/{repo}@{branch}/{path}"
+    return None
+
+
 def download(url: str, timeout: int = 60) -> bytes:
-    r = requests.get(url, timeout=timeout)
-    r.raise_for_status()
-    return r.content
+    cdn = _to_jsdelivr(url)
+    urls = [cdn, url] if cdn else [url]
+    last_exc: Exception | None = None
+    for u in urls:
+        try:
+            r = requests.get(u, timeout=timeout)
+            r.raise_for_status()
+            return r.content
+        except Exception as e:
+            print(f"  ⚠ {u} 失败: {e}")
+            last_exc = e
+    raise RuntimeError(f"所有镜像均失败: {url}") from last_exc
 
 
 def parse_domain_list(text: str) -> set[str]:

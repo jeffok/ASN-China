@@ -7,7 +7,16 @@ Copyright © 2025 by Jeff, All Rights Reserved.
 '''
 
 import ipaddress
+import re
 import requests
+
+
+def _to_jsdelivr(url: str) -> str | None:
+    m = re.match(r'https://raw\.githubusercontent\.com/([^/]+)/([^/]+)/([^/]+)/(.*)', url)
+    if m:
+        user, repo, branch, path = m.groups()
+        return f"https://cdn.jsdelivr.net/gh/{user}/{repo}@{branch}/{path}"
+    return None
 
 # 输出文件
 OUTPUT_FILE = "gfw_ip_list.rsc"
@@ -32,16 +41,23 @@ CUSTOM_CIDRS = [
 
 
 def fetch_ip_cidrs(url: str) -> list[str]:
-    """从 Surge 格式的规则文件提取 IPv4 IP-CIDR 条目"""
-    try:
-        r = requests.get(url, timeout=30)
-        r.raise_for_status()
-    except Exception as e:
-        print(f"  警告: 下载失败 {url}: {e}")
+    """从 Surge 格式的规则文件提取 IPv4 IP-CIDR 条目（jsDelivr 主源，github 备源）"""
+    cdn = _to_jsdelivr(url)
+    urls = [cdn, url] if cdn else [url]
+    text = None
+    for u in urls:
+        try:
+            r = requests.get(u, timeout=60)
+            r.raise_for_status()
+            text = r.text
+            break
+        except Exception as e:
+            print(f"  警告: 下载失败 {u}: {e}")
+    if text is None:
         return []
 
     cidrs = []
-    for line in r.text.splitlines():
+    for line in text.splitlines():
         line = line.strip()
         if not line or line.startswith("#"):
             continue
