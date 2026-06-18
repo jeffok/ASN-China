@@ -26,48 +26,73 @@
 
 > AI 域名是代理域名的子集；AI 保持「主机精确」（如 `gemini.google.com`），代理大表做 eTLD+1 塌缩。不再依赖 SmartDNS / sync-ai 二次解析。
 
-## 生成文件
+## 发布文件
 
-所有文件发布到 `release-files` 分支，可通过 raw URL 直接下载。
+`release-files` 分支只发布白名单文件，不再把所有生成产物都放进去。
 
-### 通用列表
+### 设备直接使用
 
-| 文件 | 说明 |
+| 文件 | 用途 | 使用方 |
+|------|------|--------|
+| [`dns_static_proxy_manifest.rsc`][dns_static_proxy_manifest] | 代理域名状态清单，包含 current/previous hash、条数和增量统计 | szhome / devros 定时任务先导入它判断是否需要更新 |
+| [`dns_static_proxy_delta.rsc`][dns_static_proxy_delta] | 代理域名增量更新，只删除过期项并新增变化项；导入前设置 `proxyForwardTo`、`proxyAddressList`、`proxyComment`；每 500 个操作自动 `:delay 1s` | szhome / devros 日常更新 |
+| [`dns_static_proxy.rsc`][dns_static_proxy] | 代理域名全量模板，约 6-8k，首次安装或 hash 不连续时使用；导入前设置 `proxyForwardTo`、`proxyAddressList`、`proxyComment`；每 500 条自动 `:delay 1s` | szhome / devros 兜底全量导入 |
+| [`dns_static_ai.rsc`][dns_static_ai] | 通用 AI 域名模板，导入前由 RouterOS 设置 `aiForwardTo`、`aiAddressList`、`aiComment` | szhome / devros / hkros |
+| [`gfw_ip_list.rsc`][gfw_ip_list] | Telegram 等硬编码 IP-CIDR，写入 `hk-proxy` | szhome / devros |
+| [`cn_routes.rsc`][cn_routes] | 中国 IP 静态路由，无网关，导入后由设备设置自己的 gateway | hkros / 需要回国路由的节点 |
+| [`China_ASN.rsc`][china_asn_rsc] | 中国 ASN num-list | sgpcloud BGP 过滤 |
+
+### CI 兜底快照
+
+这些不是 RouterOS 日常直接拉取的核心文件，主要用于 GitHub/APNIC 全部不可达时让下一次 CI 继续可构建：
+
+| 文件 | 用途 |
 |------|------|
-| `IPv4.China.list` | 中国 IPv4 CIDR（纯文本，每行一条） |
-| `IPv6.China.list` | 中国 IPv6 CIDR |
-| `IP.China.list` | IPv4 + IPv6 合并 |
-| `ASN.China.list` | 中国 ASN 列表（Surge/Quantumult X 格式） |
+| [`IP.China.list`][ip_china] | 中国 IPv4 + IPv6 CIDR 快照，供 `ChinaIP.py` 兜底 |
+| [`ASN.China.list`][asn_china] | 中国 ASN 快照，供 `ChinaASN.py` 兜底 |
+| [`cn-domains.txt`][cn_domains] | 国内域名快照，供 `DomainLists.py` 兜底 |
+| [`apple-cn.txt`][apple_cn] | Apple 中国域名快照 |
+| [`proxy-domains.txt`][proxy_domains] | Loyalsoldier proxy-list 快照，供构建兜底，不是边缘设备使用的 6-8k 表 |
+| [`gfw-domains.txt`][gfw_domains] | GFW 域名快照，供 `DnsStaticGFW.py` / `ProxyDomains.py` 兜底 |
+| [`gfw-ip-cidrs.txt`][gfw_ip_cidrs] | Telegram 等 IP-CIDR 快照，供 `GfwIpCidr.py` 兜底 |
+| [`bogus-nxdomain.china.conf`][bogus_nxdomain] | 虚假 NXDOMAIN IP 过滤快照 |
 
-### 域名列表（纯文本，每行一个域名，供 SmartDNS 等消费）
+### 人工参考
 
-| 文件 | 说明 |
+| 文件 | 用途 |
 |------|------|
-| `cn-domains.txt` | 国内域名（Loyalsoldier + felixonmars 合并去重） |
-| `apple-cn.txt` | Apple 中国域名 |
-| `proxy-domains.txt` | 需代理域名中等常用表（GFW 全收 + pin + AI + 热门补充，≈6–8k） |
-| `common-domains-hillstone.txt` | **山石防火墙常用代理域名**（热门交集 + pin + AI，≤3000，通配 `*.domain` 用） |
-| `gfw-domains.txt` | GFW 域名（原始 gfw.txt 纯文本，向后兼容） |
-| `ai-domains.txt` | AI 域名（人工审核 allowlist，主机精确） |
-| `gfw-ip-cidrs.txt` | GFW 应用 IP-CIDR（Telegram 等硬编码 IP 直连的应用） |
-| `bogus-nxdomain.china.conf` | 虚假 NXDOMAIN IP 过滤（dnsmasq/SmartDNS 格式） |
+| [`ai-domains.txt`][ai_domains] | AI allowlist 展开后的纯文本，便于人工审查 |
+| [`common-domains-hillstone.txt`][common_domains_hillstone] | 山石防火墙精简域名表（≤3000） |
 
-### RouterOS 脚本 (.rsc)
+### 不再发布
 
-| 文件 | 说明 |
+这些文件仍可在 CI 工作区或本地生成，但不再放入 `release-files`：
+
+| 文件 | 原因 |
 |------|------|
-| `cn_routes.rsc` | 中国 IP 静态路由（无网关，导入后自行设置） |
-| `cn_address_list.rsc` | 防火墙地址列表（`list=CN`） |
-| `China_ASN.rsc` | BGP 过滤 num-list（`list=China_ASN`） |
-| `dns_static_gfw.rsc` | GFW 域名 DNS 分流（原始 gfw.txt，向后兼容） |
-| `dns_static_proxy.rsc` | **边缘**代理域名 DNS 分流全量表（首次导入/灾难恢复用，中等常用表 ≈6–8k，FWD→hkros `10.100.50.254`，写 `hk-proxy`） |
-| `dns_static_proxy_delta.rsc` | **边缘**代理域名 DNS 分流增量表（日常更新用，对比上一版 `dns_static_proxy.rsc`，只删除过期项并新增变化项，避免同名 static 导入失败） |
-| `dns_static_proxy_manifest.rsc` | **边缘**代理域名状态清单（发布 current/previous hash 与增量统计，RouterOS 用本地 `asn-proxy-state` 判断跳过/增量/全量） |
-| `dns_static_ai_edge.rsc` | **边缘** AI 分流（FWD→hkros `10.100.50.254`，写 `hk-proxy`） |
-| `dns_static_ai_hkros.rsc` | **hkros** AI 分流（FWD→sgpros `10.100.89.3`，写 `ai-sgp`） |
-| `dns_static_ai_sgpros.rsc` | **sgpros** AI 递归兜底（FWD→公网 DNS，修复 Cursor 多级 CNAME 空答案） |
-| `dns_static_ai.rsc` | 向后兼容别名（= hkros 版） |
-| `gfw_ip_list.rsc` | GFW 应用 IP-CIDR 地址列表（Telegram 等硬编码 IP 的应用） |
+| `IPv4.China.list` / `IPv6.China.list` | 中间产物，`IP.China.list` 已覆盖兜底需求 |
+| `cn_address_list.rsc` | 当前设备未使用，避免增加发布文件数量 |
+| `dns_static_gfw.rsc` | 旧模型兼容产物，当前边缘设备使用 `dns_static_proxy*.rsc` |
+| `dns_static_ai_edge.rsc` / `dns_static_ai_hkros.rsc` | 已合并为通用 `dns_static_ai.rsc`，由设备脚本传变量 |
+| `dns_static_ai_sgpros.rsc` | 不需要在 sgpros 上维护 AI static；hkros 已将 AI FWD 到 sgpros，由 sgpros 自身 DNS 递归 |
+
+[dns_static_proxy_manifest]: https://gitea.jeffok.com:4443/jeff/asn-china/raw/branch/release-files/dns_static_proxy_manifest.rsc
+[dns_static_proxy_delta]: https://gitea.jeffok.com:4443/jeff/asn-china/raw/branch/release-files/dns_static_proxy_delta.rsc
+[dns_static_proxy]: https://gitea.jeffok.com:4443/jeff/asn-china/raw/branch/release-files/dns_static_proxy.rsc
+[dns_static_ai]: https://gitea.jeffok.com:4443/jeff/asn-china/raw/branch/release-files/dns_static_ai.rsc
+[gfw_ip_list]: https://gitea.jeffok.com:4443/jeff/asn-china/raw/branch/release-files/gfw_ip_list.rsc
+[cn_routes]: https://gitea.jeffok.com:4443/jeff/asn-china/raw/branch/release-files/cn_routes.rsc
+[china_asn_rsc]: https://gitea.jeffok.com:4443/jeff/asn-china/raw/branch/release-files/China_ASN.rsc
+[ip_china]: https://gitea.jeffok.com:4443/jeff/asn-china/raw/branch/release-files/IP.China.list
+[asn_china]: https://gitea.jeffok.com:4443/jeff/asn-china/raw/branch/release-files/ASN.China.list
+[cn_domains]: https://gitea.jeffok.com:4443/jeff/asn-china/raw/branch/release-files/cn-domains.txt
+[apple_cn]: https://gitea.jeffok.com:4443/jeff/asn-china/raw/branch/release-files/apple-cn.txt
+[proxy_domains]: https://gitea.jeffok.com:4443/jeff/asn-china/raw/branch/release-files/proxy-domains.txt
+[gfw_domains]: https://gitea.jeffok.com:4443/jeff/asn-china/raw/branch/release-files/gfw-domains.txt
+[gfw_ip_cidrs]: https://gitea.jeffok.com:4443/jeff/asn-china/raw/branch/release-files/gfw-ip-cidrs.txt
+[bogus_nxdomain]: https://gitea.jeffok.com:4443/jeff/asn-china/raw/branch/release-files/bogus-nxdomain.china.conf
+[ai_domains]: https://gitea.jeffok.com:4443/jeff/asn-china/raw/branch/release-files/ai-domains.txt
+[common_domains_hillstone]: https://gitea.jeffok.com:4443/jeff/asn-china/raw/branch/release-files/common-domains-hillstone.txt
 
 ## 更新调度
 
@@ -215,21 +240,39 @@ https://gitea.jeffok.com:4443/jeff/asn-china/raw/branch/release-files/
 
 ### 边缘 RouterOS 代理 + AI 域名 DNS 分流
 
-`szhome`、`devros` 边缘路由器导入两份：`dns_static_proxy.rsc`（代理大表）+ `dns_static_ai_edge.rsc`（AI）。两者都 FWD 到 **hkros DNS `10.100.50.254`**、写 `hk-proxy`；AI 的二次分流（→ SGP）由 hkros 完成。
+`szhome`、`devros` 边缘路由器导入代理表和通用 AI 模板。两个模板都在导入前设置变量，让代理/AI 域名 FWD 到 **hkros DNS `10.100.50.254`**、写 `hk-proxy`；AI 的二次分流（→ SGP）由 hkros 完成。
 
 ```routeros
 /system/script/add name="Update_DNS_Edge" source={
     :local base "https://gitea.jeffok.com:4443/jeff/asn-china/raw/branch/release-files/"
-    :foreach fn in={"dns_static_proxy.rsc";"dns_static_ai_edge.rsc"} do={
-        :if ([:len [/file/find name=$fn]] > 0) do={ /file/remove $fn }
-        /tool/fetch url=($base . $fn) dst-path=$fn
-        :delay 5s
-        :if ([:len [/file/find name=$fn]] > 0) do={
-            /import file-name=$fn
-            /file/remove $fn
-            :log info ("imported " . $fn)
-        } else={ :log error ("download failed: " . $fn) }
-    }
+
+    # 代理域名：日常建议使用 manifest + delta 状态机；首次安装可直接导入全量表。
+    :global proxyForwardTo "10.100.50.254"
+    :global proxyAddressList "hk-proxy"
+    :global proxyComment "PROXY"
+    :local fn "dns_static_proxy.rsc"
+    :if ([:len [/file/find name=$fn]] > 0) do={ /file/remove $fn }
+    /tool/fetch url=($base . $fn) dst-path=$fn
+    :delay 5s
+    :if ([:len [/file/find name=$fn]] > 0) do={
+        /import file-name=$fn
+        /file/remove $fn
+        :log info ("imported " . $fn)
+    } else={ :log error ("download failed: " . $fn) }
+
+    # AI 域名：同一个 dns_static_ai.rsc，通过变量决定转发目标和写入地址列表。
+    :global aiForwardTo "10.100.50.254"
+    :global aiAddressList "hk-proxy"
+    :global aiComment "AI"
+    :set fn "dns_static_ai.rsc"
+    :if ([:len [/file/find name=$fn]] > 0) do={ /file/remove $fn }
+    /tool/fetch url=($base . $fn) dst-path=$fn
+    :delay 5s
+    :if ([:len [/file/find name=$fn]] > 0) do={
+        /import file-name=$fn
+        /file/remove $fn
+        :log info ("imported " . $fn)
+    } else={ :log error ("download failed: " . $fn) }
     /ip/dns/cache/flush
 }
 
@@ -238,12 +281,15 @@ https://gitea.jeffok.com:4443/jeff/asn-china/raw/branch/release-files/
 
 ### hkros AI 域名 DNS 分流
 
-hkros 导入 `dns_static_ai_hkros.rsc`：AI 域名 FWD 到 **sgpros DNS `10.100.89.3`**、命中写 `ai-sgp`（mangle 再把 `ai-sgp` 标记到 `rt-sgp` 经 WG 到 sgpros 出网）。
+hkros 也导入同一个 `dns_static_ai.rsc`，只是变量不同：AI 域名 FWD 到 **sgpros DNS `10.100.89.3`**、命中写 `ai-sgp`（mangle 再把 `ai-sgp` 标记到 `rt-sgp` 经 WG 到 sgpros 出网）。
 
 ```routeros
 /system/script/add name="Update_DNS_AI_hkros" source={
-    :local fn "dns_static_ai_hkros.rsc"
-    :local url "https://gitea.jeffok.com:4443/jeff/asn-china/raw/branch/release-files/dns_static_ai_hkros.rsc"
+    :global aiForwardTo "10.100.89.3"
+    :global aiAddressList "ai-sgp"
+    :global aiComment "AI"
+    :local fn "dns_static_ai.rsc"
+    :local url "https://gitea.jeffok.com:4443/jeff/asn-china/raw/branch/release-files/dns_static_ai.rsc"
     :if ([:len [/file/find name=$fn]] > 0) do={ /file/remove $fn }
     /tool/fetch url=$url dst-path=$fn
     :delay 5s

@@ -2,7 +2,7 @@
 Author: Jeff
 Date: 2026-06-17
 Description: 生成代理域名分流产物（统一源 = Loyalsoldier proxy-list ∪ gfw，eTLD+1 塌缩）
-             - dns_static_proxy.rsc        边缘 RouterOS 中等常用表（FWD → hkros DNS，写 hk-proxy）
+             - dns_static_proxy.rsc        通用 RouterOS 中等常用表（导入前设置 proxyForwardTo/proxyAddressList）
              - common-domains-hillstone.txt 山石防火墙精简表（热门交集 + pin + AI，≤3000）
              - proxy-domains.txt            纯文本中等常用域名（供其它消费）
 Copyright © 2026 by Jeff, All Rights Reserved.
@@ -44,9 +44,8 @@ ROS_MANIFEST_OUTPUT = "dns_static_proxy_manifest.rsc"
 HILLSTONE_OUTPUT = "common-domains-hillstone.txt"
 PLAINTEXT_OUTPUT = "proxy-domains.txt"
 
-FORWARD_TO = "10.100.50.254"     # hkros 的 RouterOS DNS（LAN IP），不是 SmartDNS
-ADDRESS_LIST = "hk-proxy"
 COMMENT = "PROXY"
+# 大表导入时对 hAP ax lite 这类低内存 RouterOS 节流，避免一次性 import 触发管理面卡死或重启。
 ROS_IMPORT_DELAY_EVERY = 500
 ROS_IMPORT_DELAY = "1s"
 
@@ -184,12 +183,18 @@ def load_popularity_fallback(reason: str) -> list[str]:
 
 def write_ros(domains: list[str], path: str = ROS_OUTPUT, comment: str = COMMENT) -> None:
     with open(path, "w") as f:
-        f.write(f"/ip/dns/static/remove [find where comment={comment}]\n")
+        f.write(":global proxyForwardTo\n")
+        f.write(":global proxyAddressList\n")
+        f.write(":global proxyComment\n")
+        f.write(':if ([:typeof $proxyForwardTo] = "nothing") do={ :error "proxyForwardTo is required" }\n')
+        f.write(':if ([:typeof $proxyAddressList] = "nothing") do={ :error "proxyAddressList is required" }\n')
+        f.write(f':if ([:typeof $proxyComment] = "nothing") do={{ :global proxyComment "{comment}" }}\n')
+        f.write("/ip/dns/static/remove [find where comment=$proxyComment]\n")
         f.write("/ip/dns/static\n")
         for index, d in enumerate(domains, 1):
             f.write(
-                f"add name={d} type=FWD forward-to={FORWARD_TO} "
-                f"address-list={ADDRESS_LIST} match-subdomain=yes comment={comment}\n"
+                f"add name={d} type=FWD forward-to=$proxyForwardTo "
+                f"address-list=$proxyAddressList match-subdomain=yes comment=$proxyComment\n"
             )
             if index % ROS_IMPORT_DELAY_EVERY == 0:
                 f.write(f":delay {ROS_IMPORT_DELAY}\n")
@@ -234,13 +239,19 @@ def write_ros_delta(current: list[str], previous: set[str], path: str = ROS_DELT
     to_remove = sorted(previous - current_set)
 
     with open(path, "w") as f:
+        f.write(":global proxyForwardTo\n")
+        f.write(":global proxyAddressList\n")
+        f.write(":global proxyComment\n")
+        f.write(':if ([:typeof $proxyForwardTo] = "nothing") do={ :error "proxyForwardTo is required" }\n')
+        f.write(':if ([:typeof $proxyAddressList] = "nothing") do={ :error "proxyAddressList is required" }\n')
+        f.write(f':if ([:typeof $proxyComment] = "nothing") do={{ :global proxyComment "{COMMENT}" }}\n')
         f.write("/ip/dns/static\n")
         operation_count = 0
 
         for d in to_remove:
             f.write(
-                f':if ([:len [find where comment={COMMENT} and name="{d}"]] > 0) do={{ '
-                f'remove [find where comment={COMMENT} and name="{d}"] }}\n'
+                f':if ([:len [find where comment=$proxyComment and name="{d}"]] > 0) do={{ '
+                f'remove [find where comment=$proxyComment and name="{d}"] }}\n'
             )
             operation_count += 1
             if operation_count % ROS_IMPORT_DELAY_EVERY == 0:
@@ -248,9 +259,9 @@ def write_ros_delta(current: list[str], previous: set[str], path: str = ROS_DELT
 
         for d in to_add:
             f.write(
-                f':if ([:len [find where comment={COMMENT} and name="{d}"]] = 0) do={{ '
-                f"add name={d} type=FWD forward-to={FORWARD_TO} "
-                f"address-list={ADDRESS_LIST} match-subdomain=yes comment={COMMENT} }}\n"
+                f':if ([:len [find where comment=$proxyComment and name="{d}"]] = 0) do={{ '
+                f"add name={d} type=FWD forward-to=$proxyForwardTo "
+                f"address-list=$proxyAddressList match-subdomain=yes comment=$proxyComment }}\n"
             )
             operation_count += 1
             if operation_count % ROS_IMPORT_DELAY_EVERY == 0:

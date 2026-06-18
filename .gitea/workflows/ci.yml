@@ -42,7 +42,29 @@ jobs:
     - name: Push generated files to release-files branch
       run: |
         mkdir generated
-        mv *.rsc *.list *.txt *.conf generated/ 2>/dev/null || true
+        for f in \
+          dns_static_proxy_manifest.rsc \
+          dns_static_proxy_delta.rsc \
+          dns_static_proxy.rsc \
+          dns_static_ai.rsc \
+          gfw_ip_list.rsc \
+          cn_routes.rsc \
+          China_ASN.rsc \
+          IP.China.list \
+          ASN.China.list \
+          cn-domains.txt \
+          apple-cn.txt \
+          proxy-domains.txt \
+          gfw-domains.txt \
+          gfw-ip-cidrs.txt \
+          bogus-nxdomain.china.conf \
+          ai-domains.txt \
+          common-domains-hillstone.txt
+        do
+          if [ -f "$f" ]; then
+            mv "$f" generated/
+          fi
+        done
 
         cd generated
         git init
