@@ -46,6 +46,11 @@ COMMENT = "PROXY"
 HILLSTONE_MAX = 3000             # 山石域名地址簿硬上限
 HILLSTONE_TARGET = 2800          # 实际目标，留余量
 
+# 中等精简表（低内存 ROS 设备，如 hAP ax lite 256MB）
+MEDIUM_OUTPUT = "dns_static_proxy_medium.rsc"
+MEDIUM_TARGET = 12000            # 目标条目数（含 pin + AI）
+MEDIUM_MAX = 13000               # 硬上限
+
 # 使用 tldextract 内置快照（suffix_list_urls=() → 离线，不依赖网络拉 PSL）
 _EXTRACT = tldextract.TLDExtract(suffix_list_urls=())
 
@@ -179,14 +184,14 @@ def load_popularity_fallback(reason: str) -> list[str]:
     return []
 
 
-def write_ros(domains: list[str]) -> None:
-    with open(ROS_OUTPUT, "w") as f:
-        f.write(f"/ip/dns/static/remove [find where comment={COMMENT}]\n")
+def write_ros(domains: list[str], path: str = ROS_OUTPUT, comment: str = COMMENT) -> None:
+    with open(path, "w") as f:
+        f.write(f"/ip/dns/static/remove [find where comment={comment}]\n")
         f.write("/ip/dns/static\n")
         for d in domains:
             f.write(
                 f"add name={d} type=FWD forward-to={FORWARD_TO} "
-                f"address-list={ADDRESS_LIST} match-subdomain=yes comment={COMMENT}\n"
+                f"address-list={ADDRESS_LIST} match-subdomain=yes comment={comment}\n"
             )
 
 
@@ -218,22 +223,34 @@ def main() -> None:
     write_plaintext(sorted(full), PLAINTEXT_OUTPUT, "代理域名（注册域塌缩，每日更新）")
     print(f"生成 {PLAINTEXT_OUTPUT}（{len(full)} 条）")
 
-    # 山石精简：热门交集（按热度截断）+ pin + AI，去重，≤3000
+    # 热门排名数据（山石 + 中等表共用）
     pop = download_popularity()
     if not pop:
-        print(f"跳过 {HILLSTONE_OUTPUT}（无热门排名数据）")
+        print(f"跳过 {HILLSTONE_OUTPUT} 和 {MEDIUM_OUTPUT}（无热门排名数据）")
         return
     inter = [d for d in pop if d in full]
-    keep = HILLSTONE_TARGET - len(pin | ai_reg)
-    keep = max(keep, 0)
-    hillstone = sorted(set(inter[:keep]) | pin | ai_reg)
-    if len(hillstone) > HILLSTONE_MAX:
-        # 极端兜底：超限则在保留 pin+AI 的前提下再砍热门尾部
-        head = sorted(set(inter[:keep - (len(hillstone) - HILLSTONE_MAX)]) | pin | ai_reg)
-        hillstone = head
+
+    def trim_by_popularity(target: int, hard_max: int) -> list[str]:
+        """按热度截断到 target 条（含 pin + ai_reg），不超过 hard_max。"""
+        keep = max(target - len(pin | ai_reg), 0)
+        result = sorted(set(inter[:keep]) | pin | ai_reg)
+        if len(result) > hard_max:
+            keep2 = max(keep - (len(result) - hard_max), 0)
+            result = sorted(set(inter[:keep2]) | pin | ai_reg)
+        return result
+
+    # 山石精简表（≤3000）
+    hillstone = trim_by_popularity(HILLSTONE_TARGET, HILLSTONE_MAX)
     write_plaintext(hillstone, HILLSTONE_OUTPUT,
                     f"山石防火墙常用代理域名（热门交集+pin+AI，≤{HILLSTONE_MAX}，每日更新）")
     print(f"生成 {HILLSTONE_OUTPUT}（山石精简，{len(hillstone)} 条，上限 {HILLSTONE_MAX}）")
+
+    # 中等精简表（低内存 ROS，如 hAP ax lite）
+    medium_domains = trim_by_popularity(MEDIUM_TARGET, MEDIUM_MAX)
+    write_ros(medium_domains, MEDIUM_OUTPUT, comment=COMMENT)
+    write_plaintext(medium_domains, "proxy-domains-medium.txt",
+                    f"代理域名中等精简（热门 top~{MEDIUM_TARGET}，低内存 ROS 用，每日更新）")
+    print(f"生成 {MEDIUM_OUTPUT}（中等精简，{len(medium_domains)} 条，上限 {MEDIUM_MAX}）")
 
 
 if __name__ == "__main__":
