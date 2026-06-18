@@ -24,7 +24,7 @@ jobs:
         python3.12 --version
         python3.12 -m venv .venv
         .venv/bin/python --version
-        .venv/bin/python -m pip install requests tldextract
+        .venv/bin/python -m pip --version
 
     - name: Generate IP lists and ROS scripts
       env:
