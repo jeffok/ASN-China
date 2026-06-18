@@ -23,9 +23,10 @@ COMMENT = "GFW-IP"
 # /16 = 65536 IP，再大就有误伤风险
 MAX_PREFIX_SIZE = 16
 
-# 数据源：blackmatrix7 维护的规则（Surge 格式）
-# 只提取 IP-CIDR 条目，域名由 dns_static_gfw.rsc 覆盖
+# 数据源：Telegram 官方 CIDR + blackmatrix7 维护的 Surge 规则。
+# 只提取 IPv4 CIDR 条目，域名由 dns_static_proxy.rsc 覆盖。
 SOURCES = {
+    "TelegramOfficial": "https://core.telegram.org/resources/cidr.txt",
     "Telegram": "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Surge/Telegram/Telegram.list",
 }
 FALLBACK_CIDRS_URL = (
@@ -35,14 +36,31 @@ FALLBACK_CIDRS_URL = (
 
 # 自定义补充 IP-CIDR（上游未收录或需要手动维护的）
 CUSTOM_CIDRS = [
-    # 可在此添加其他硬编码 IP 段
+    # Telegram 官方 IPv4 CIDR 兜底：
+    # https://core.telegram.org/resources/cidr.txt
+    "91.105.192.0/23",
+    "91.108.4.0/22",
+    "91.108.8.0/22",
+    "91.108.12.0/22",
+    "91.108.16.0/22",
+    "91.108.20.0/22",
+    "91.108.56.0/22",
+    "149.154.160.0/20",
+    "185.76.151.0/24",
 ]
 
 
+def candidate_urls(url: str) -> list[str]:
+    """GitHub raw 用国内镜像；普通 URL 直接访问。"""
+    if "raw.githubusercontent.com" in url:
+        return github_mirror_urls(url)
+    return [url]
+
+
 def fetch_ip_cidrs(url: str) -> list[str]:
-    """从 Surge 格式的规则文件提取 IPv4 IP-CIDR 条目（国内 GitHub 镜像优先，raw 兜底）"""
+    """从 Surge 或纯 CIDR 格式提取 IPv4 CIDR 条目。"""
     text = None
-    for u in github_mirror_urls(url):
+    for u in candidate_urls(url):
         try:
             r = requests.get(u, timeout=10)
             r.raise_for_status()
@@ -63,6 +81,12 @@ def fetch_ip_cidrs(url: str) -> list[str]:
             if len(parts) >= 2:
                 cidr = parts[1].strip()
                 cidrs.append(cidr)
+            continue
+        try:
+            net = ipaddress.ip_network(line, strict=False)
+        except ValueError:
+            continue
+        cidrs.append(str(net))
         # 忽略 IP-CIDR6、DOMAIN、IP-ASN 等
     return cidrs
 
