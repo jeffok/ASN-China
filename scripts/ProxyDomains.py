@@ -11,6 +11,7 @@ Copyright © 2026 by Jeff, All Rights Reserved.
 from __future__ import annotations  # 兼容 Python 3.9 runner：延迟注解，str|None/list[str] 不在运行时求值
 
 import os
+import hashlib
 from pathlib import Path
 
 import requests
@@ -36,12 +37,16 @@ POPULARITY_FALLBACK_FILE = SCRIPT_DIR / "popularity_fallback.txt"   # 内置兜�
 
 # ── 产物参数 ────────────────────────────────────────────────────────────
 ROS_OUTPUT = "dns_static_proxy.rsc"
+ROS_DELTA_OUTPUT = "dns_static_proxy_delta.rsc"
+ROS_MANIFEST_OUTPUT = "dns_static_proxy_manifest.rsc"
 HILLSTONE_OUTPUT = "common-domains-hillstone.txt"
 PLAINTEXT_OUTPUT = "proxy-domains.txt"
 
 FORWARD_TO = "10.100.50.254"     # hkros 的 RouterOS DNS（LAN IP），不是 SmartDNS
 ADDRESS_LIST = "hk-proxy"
 COMMENT = "PROXY"
+ROS_IMPORT_DELAY_EVERY = 500
+ROS_IMPORT_DELAY = "1s"
 
 HILLSTONE_MAX = 3000             # 山石域名地址簿硬上限
 HILLSTONE_TARGET = 2800          # 实际目标，留余量
@@ -190,11 +195,97 @@ def write_ros(domains: list[str], path: str = ROS_OUTPUT, comment: str = COMMENT
     with open(path, "w") as f:
         f.write(f"/ip/dns/static/remove [find where comment={comment}]\n")
         f.write("/ip/dns/static\n")
-        for d in domains:
+        for index, d in enumerate(domains, 1):
             f.write(
                 f"add name={d} type=FWD forward-to={FORWARD_TO} "
                 f"address-list={ADDRESS_LIST} match-subdomain=yes comment={comment}\n"
             )
+            if index % ROS_IMPORT_DELAY_EVERY == 0:
+                f.write(f":delay {ROS_IMPORT_DELAY}\n")
+
+
+def parse_ros_names(text: str, comment: str = COMMENT) -> set[str]:
+    """从上一版 RouterOS static 脚本里提取实际写入的 name，作为增量 diff 基线。"""
+    import re
+
+    names = set()
+    for line in text.splitlines():
+        if not line.startswith("add ") or f"comment={comment}" not in line:
+            continue
+        match = re.search(r" name=([^ ]+)", f" {line}")
+        if match:
+            names.add(match.group(1).strip('"').lower())
+    return names
+
+
+def load_previous_ros_names(path: str = ROS_OUTPUT) -> set[str]:
+    url = f"{RELEASE_RAW_BASE}/{path}"
+    try:
+        print(f"下载上一版 ROS 表用于增量 diff: {url}")
+        r = requests.get(url, timeout=20)
+        r.raise_for_status()
+        previous = parse_ros_names(r.text)
+        print(f"  上一版 {path}: {len(previous)} 条")
+        return previous
+    except Exception as exc:  # noqa: BLE001
+        print(f"  警告：无法读取上一版 {path}，增量包将按首次导入生成: {exc}")
+        return set()
+
+
+def domain_set_hash(domains: set[str] | list[str]) -> str:
+    canonical = "\n".join(sorted(domains)) + "\n"
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+
+def write_ros_delta(current: list[str], previous: set[str], path: str = ROS_DELTA_OUTPUT) -> tuple[int, int]:
+    current_set = set(current)
+    to_add = sorted(current_set - previous)
+    to_remove = sorted(previous - current_set)
+
+    with open(path, "w") as f:
+        f.write("/ip/dns/static\n")
+        operation_count = 0
+
+        for d in to_remove:
+            f.write(
+                f':if ([:len [find where comment={COMMENT} and name="{d}"]] > 0) do={{ '
+                f'remove [find where comment={COMMENT} and name="{d}"] }}\n'
+            )
+            operation_count += 1
+            if operation_count % ROS_IMPORT_DELAY_EVERY == 0:
+                f.write(f":delay {ROS_IMPORT_DELAY}\n")
+
+        for d in to_add:
+            f.write(
+                f':if ([:len [find where comment={COMMENT} and name="{d}"]] = 0) do={{ '
+                f"add name={d} type=FWD forward-to={FORWARD_TO} "
+                f"address-list={ADDRESS_LIST} match-subdomain=yes comment={COMMENT} }}\n"
+            )
+            operation_count += 1
+            if operation_count % ROS_IMPORT_DELAY_EVERY == 0:
+                f.write(f":delay {ROS_IMPORT_DELAY}\n")
+
+        f.write(f':log info "DNS PROXY delta applied: remove={len(to_remove)} add={len(to_add)}"\n')
+
+    return len(to_remove), len(to_add)
+
+
+def write_ros_manifest(
+    current_hash: str,
+    previous_hash: str,
+    current_count: int,
+    removed: int,
+    added: int,
+    path: str = ROS_MANIFEST_OUTPUT,
+) -> None:
+    with open(path, "w") as f:
+        f.write(f':global asnProxyCurrentHash "{current_hash}"\n')
+        f.write(f':global asnProxyPreviousHash "{previous_hash}"\n')
+        f.write(f":global asnProxyCurrentCount {current_count}\n")
+        f.write(f":global asnProxyDeltaRemove {removed}\n")
+        f.write(f":global asnProxyDeltaAdd {added}\n")
+        f.write(f':global asnProxyFullFile "{ROS_OUTPUT}"\n')
+        f.write(f':global asnProxyDeltaFile "{ROS_DELTA_OUTPUT}"\n')
 
 
 def write_plaintext(domains: list[str], path: str, header: str) -> None:
@@ -266,10 +357,20 @@ def main() -> None:
     tier1_count = len(gfw | pin | ai_reg)
     tier2_count = len(medium_domains) - tier1_count
     print(f"\n中等表构成：第一层（GFW+pin+AI）{tier1_count} 条 + 第二层（rank≤{MEDIUM_RANK_CUTOFF}补充）{tier2_count} 条")
-    write_ros(sorted(set(medium_domains) - ai_reg), ROS_OUTPUT, comment=COMMENT)
+    # 只排除 AI 精确主机名，不能排除 AI 注册域：
+    # 例如 gemini.google.com 会塌缩为 google.com，但 google.com 仍应作为常用海外域名保留在 PROXY。
+    ros_domains = sorted(set(medium_domains) - ai_hosts)
+    write_ros(ros_domains, ROS_OUTPUT, comment=COMMENT)
+    previous_ros_domains = load_previous_ros_names()
+    removed, added = write_ros_delta(ros_domains, previous_ros_domains)
+    current_hash = domain_set_hash(ros_domains)
+    previous_hash = domain_set_hash(previous_ros_domains) if previous_ros_domains else ""
+    write_ros_manifest(current_hash, previous_hash, len(ros_domains), removed, added)
     write_plaintext(medium_domains, PLAINTEXT_OUTPUT,
                     f"代理域名中等精简（GFW全收+rank≤{MEDIUM_RANK_CUTOFF}热门补充，每日更新）")
-    print(f"生成 {ROS_OUTPUT}（中等精简，{len(medium_domains)} 条）")
+    print(f"生成 {ROS_OUTPUT}（中等精简，写入 ROS {len(ros_domains)} 条；文本 {len(medium_domains)} 条）")
+    print(f"生成 {ROS_DELTA_OUTPUT}（增量，删除 {removed} 条，新增 {added} 条）")
+    print(f"生成 {ROS_MANIFEST_OUTPUT}（current={current_hash[:12]} previous={previous_hash[:12] or 'none'}）")
 
 
 if __name__ == "__main__":

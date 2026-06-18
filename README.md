@@ -22,6 +22,7 @@
 
 - **边缘（szhome/devros 或山石）** 判断「要不要出国」：命中代理清单 → FWD 到 **hkros DNS `10.100.50.254`**、写 `hk-proxy` → 经 WG 送到 hkros。
 - **hkros** 判断「是不是 AI」：AI 域名 → FWD 到 **sgpros DNS `10.100.89.3`**、写 `ai-sgp` → 经 WG 到 sgpros 出网；其余默认走香港出口。
+- **sgpros** 对 AI 域名显式 FWD 到公网 DNS，避免 DHCP 上游或 RouterOS 默认递归对 Cursor 多级 CNAME 返回空答案。
 
 > AI 域名是代理域名的子集；AI 保持「主机精确」（如 `gemini.google.com`），代理大表做 eTLD+1 塌缩。不再依赖 SmartDNS / sync-ai 二次解析。
 
@@ -44,7 +45,7 @@
 |------|------|
 | `cn-domains.txt` | 国内域名（Loyalsoldier + felixonmars 合并去重） |
 | `apple-cn.txt` | Apple 中国域名 |
-| `proxy-domains.txt` | 需代理域名（注册域塌缩全量，≈2.6 万） |
+| `proxy-domains.txt` | 需代理域名中等常用表（GFW 全收 + pin + AI + 热门补充，≈6–8k） |
 | `common-domains-hillstone.txt` | **山石防火墙常用代理域名**（热门交集 + pin + AI，≤3000，通配 `*.domain` 用） |
 | `gfw-domains.txt` | GFW 域名（原始 gfw.txt 纯文本，向后兼容） |
 | `ai-domains.txt` | AI 域名（人工审核 allowlist，主机精确） |
@@ -59,9 +60,12 @@
 | `cn_address_list.rsc` | 防火墙地址列表（`list=CN`） |
 | `China_ASN.rsc` | BGP 过滤 num-list（`list=China_ASN`） |
 | `dns_static_gfw.rsc` | GFW 域名 DNS 分流（原始 gfw.txt，向后兼容） |
-| `dns_static_proxy.rsc` | **边缘**代理域名 DNS 分流（注册域塌缩全量 ≈2.6 万，FWD→hkros `10.100.50.254`，写 `hk-proxy`） |
+| `dns_static_proxy.rsc` | **边缘**代理域名 DNS 分流全量表（首次导入/灾难恢复用，中等常用表 ≈6–8k，FWD→hkros `10.100.50.254`，写 `hk-proxy`） |
+| `dns_static_proxy_delta.rsc` | **边缘**代理域名 DNS 分流增量表（日常更新用，对比上一版 `dns_static_proxy.rsc`，只删除过期项并新增变化项，避免同名 static 导入失败） |
+| `dns_static_proxy_manifest.rsc` | **边缘**代理域名状态清单（发布 current/previous hash 与增量统计，RouterOS 用本地 `asn-proxy-state` 判断跳过/增量/全量） |
 | `dns_static_ai_edge.rsc` | **边缘** AI 分流（FWD→hkros `10.100.50.254`，写 `hk-proxy`） |
 | `dns_static_ai_hkros.rsc` | **hkros** AI 分流（FWD→sgpros `10.100.89.3`，写 `ai-sgp`） |
+| `dns_static_ai_sgpros.rsc` | **sgpros** AI 递归兜底（FWD→公网 DNS，修复 Cursor 多级 CNAME 空答案） |
 | `dns_static_ai.rsc` | 向后兼容别名（= hkros 版） |
 | `gfw_ip_list.rsc` | GFW 应用 IP-CIDR 地址列表（Telegram 等硬编码 IP 的应用） |
 

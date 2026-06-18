@@ -8,6 +8,7 @@ Description: 生成 AI 域名的 RouterOS DNS 分流脚本（边缘 + hkros 两�
                              （让 AI 流量先进 hk-proxy → rt-hk → 送到 hkros）
   - dns_static_ai_hkros.rsc  hkros 用：FWD → sgpros DNS(10.100.89.3)，写 ai-sgp
                              （hkros 原子写表 → rt-sgp → 经 WG 到 sgpros 出网）
+  - dns_static_ai_sgpros.rsc sgpros 用：FWD → 公网 DNS，修复部分多级 CNAME 空答案
   - dns_static_ai.rsc        向后兼容别名 = hkros 版
   - ai-domains.txt           纯文本（含 SmartDNS 后缀条目），供其它消费
 
@@ -33,6 +34,11 @@ HKROS_FORWARD_TO = "10.100.89.3"
 HKROS_ADDRESS_LIST = "ai-sgp"
 HKROS_OUTPUT = "dns_static_ai_hkros.rsc"
 COMPAT_OUTPUT = "dns_static_ai.rsc"   # 向后兼容别名
+
+# sgpros 端：显式使用公网 DNS 递归，避免 DHCP 上游/RouterOS 默认递归对部分 Cursor 多级 CNAME 返回空答案
+SGPROS_FORWARD_TO = "1.1.1.1"
+SGPROS_OUTPUT = "dns_static_ai_sgpros.rsc"
+SGPROS_COMMENT = "AI-SGPROS"
 
 # SmartDNS domain-set 后缀条目（仅写入 ai-domains.txt，不进 RouterOS static）
 SMARTDNS_SUFFIX_ENTRIES = (
@@ -65,6 +71,19 @@ def write_rsc(domains: list[str], path: str, forward_to: str, address_list: str)
             )
 
 
+def write_sgpros_rsc(domains: list[str], path: str) -> None:
+    with open(path, "w") as f:
+        f.write(f"/ip/dns/static/remove [find where comment={SGPROS_COMMENT}]\n")
+        f.write("/ip/dns/static\n")
+        for domain in domains:
+            if domain.startswith("."):
+                continue
+            f.write(
+                f"add name={domain} type=FWD forward-to={SGPROS_FORWARD_TO} "
+                f"match-subdomain=yes comment={SGPROS_COMMENT}\n"
+            )
+
+
 def write_txt(domains: list[str], path: str) -> None:
     smartdns_domains = sorted(set(domains) | set(SMARTDNS_SUFFIX_ENTRIES))
     with open(path, "w") as f:
@@ -83,6 +102,9 @@ def main() -> None:
 
     write_rsc(domains, HKROS_OUTPUT, HKROS_FORWARD_TO, HKROS_ADDRESS_LIST)
     print(f"生成 {HKROS_OUTPUT}（hkros → sgpros，写 {HKROS_ADDRESS_LIST}）")
+
+    write_sgpros_rsc(domains, SGPROS_OUTPUT)
+    print(f"生成 {SGPROS_OUTPUT}（sgpros → 公网 DNS，修复多级 CNAME）")
 
     write_rsc(domains, COMPAT_OUTPUT, HKROS_FORWARD_TO, HKROS_ADDRESS_LIST)
     print(f"生成 {COMPAT_OUTPUT}（向后兼容别名 = hkros 版）")
