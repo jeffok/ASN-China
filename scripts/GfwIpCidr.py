@@ -9,16 +9,9 @@ Copyright © 2025 by Jeff, All Rights Reserved.
 from __future__ import annotations
 
 import ipaddress
-import re
 import requests
 
-
-def _to_jsdelivr(url: str) -> str | None:
-    m = re.match(r'https://raw\.githubusercontent\.com/([^/]+)/([^/]+)/([^/]+)/(.*)', url)
-    if m:
-        user, repo, branch, path = m.groups()
-        return f"https://cdn.jsdelivr.net/gh/{user}/{repo}@{branch}/{path}"
-    return None
+from download_utils import github_mirror_urls
 
 # 输出文件
 OUTPUT_FILE = "gfw_ip_list.rsc"
@@ -47,11 +40,9 @@ CUSTOM_CIDRS = [
 
 
 def fetch_ip_cidrs(url: str) -> list[str]:
-    """从 Surge 格式的规则文件提取 IPv4 IP-CIDR 条目（jsDelivr 主源，github 备源）"""
-    cdn = _to_jsdelivr(url)
-    urls = [cdn, url] if cdn else [url]
+    """从 Surge 格式的规则文件提取 IPv4 IP-CIDR 条目（国内 GitHub 镜像优先，raw 兜底）"""
     text = None
-    for u in urls:
+    for u in github_mirror_urls(url):
         try:
             r = requests.get(u, timeout=10)
             r.raise_for_status()

@@ -7,16 +7,9 @@ Copyright © 2022 by Jeff, All Rights Reserved.
 
 from __future__ import annotations
 
-import re
 import requests
 
-
-def _to_jsdelivr(url: str) -> str | None:
-    m = re.match(r'https://raw\.githubusercontent\.com/([^/]+)/([^/]+)/([^/]+)/(.*)', url)
-    if m:
-        user, repo, branch, path = m.groups()
-        return f"https://cdn.jsdelivr.net/gh/{user}/{repo}@{branch}/{path}"
-    return None
+from download_utils import github_mirror_urls
 
 
 # GFW 域名列表数据源
@@ -36,11 +29,9 @@ COMMENT = "GFW"
 
 
 def download_domains(url: str) -> list[str]:
-    """下载域名列表，过滤注释和空行（jsDelivr 主源，github 备源）"""
-    cdn = _to_jsdelivr(url)
-    urls = [cdn, url] if cdn else [url]
+    """下载域名列表，过滤注释和空行（国内 GitHub 镜像优先，raw 兜底）"""
     text = None
-    for u in urls:
+    for u in github_mirror_urls(url):
         try:
             r = requests.get(u, timeout=10)
             r.raise_for_status()

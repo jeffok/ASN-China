@@ -73,6 +73,17 @@
 
 Gitea Actions 每日 UTC 20:00（北京时间 04:00）自动运行，生成文件 force-push 到 `release-files` 分支。
 
+## 数据源下载策略
+
+GitHub raw 数据源优先通过国内可访问镜像下载，顺序为：
+
+1. `cdn.jsdelivr.net`
+2. `gh-proxy.com`
+3. `ghfast.top`
+4. `raw.githubusercontent.com`
+
+仅当以上 GitHub 镜像全部失败时，才回退到 `release-files` 中的上一版产物，避免国内网络下直接使用旧文件作为首选数据源。
+
 ## RouterOS 使用方法
 
 ### 下载基础 URL

@@ -17,6 +17,8 @@ from pathlib import Path
 import requests
 import tldextract
 
+from download_utils import github_mirror_urls
+
 # ── 数据源 ──────────────────────────────────────────────────────────────
 # proxy-list = geolocation-!cn + gfw + greatfire（Loyalsoldier 已合并去重）
 PROXY_URL = "https://raw.githubusercontent.com/Loyalsoldier/v2ray-rules-dat/release/proxy-list.txt"
@@ -70,20 +72,9 @@ def registrable(domain: str) -> str | None:
     return None
 
 
-def _to_jsdelivr(url: str) -> str | None:
-    import re
-    m = re.match(r'https://raw\.githubusercontent\.com/([^/]+)/([^/]+)/([^/]+)/(.*)', url)
-    if m:
-        user, repo, branch, path = m.groups()
-        return f"https://cdn.jsdelivr.net/gh/{user}/{repo}@{branch}/{path}"
-    return None
-
-
 def download(url: str, timeout: int = 10) -> bytes:
-    cdn = _to_jsdelivr(url)
-    urls = [cdn, url] if cdn else [url]
     last_exc: Exception | None = None
-    for u in urls:
+    for u in github_mirror_urls(url):
         try:
             r = requests.get(u, timeout=timeout)
             r.raise_for_status()
@@ -91,7 +82,7 @@ def download(url: str, timeout: int = 10) -> bytes:
         except Exception as e:
             print(f"  ⚠ {u} 失败: {e}")
             last_exc = e
-    raise RuntimeError(f"所有镜像均失败: {url}") from last_exc
+    raise RuntimeError(f"所有 GitHub 镜像均失败: {url}") from last_exc
 
 
 def download_or_release(url: str, fallback_file: str) -> bytes:

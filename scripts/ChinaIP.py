@@ -7,32 +7,13 @@ Copyright © 2022 by Jeff, All Rights Reserved.
 
 from __future__ import annotations
 
-import re
-import requests
 import ipaddress
 
-
-def _to_jsdelivr(url: str) -> str | None:
-    m = re.match(r'https://raw\.githubusercontent\.com/([^/]+)/([^/]+)/([^/]+)/(.*)', url)
-    if m:
-        user, repo, branch, path = m.groups()
-        return f"https://cdn.jsdelivr.net/gh/{user}/{repo}@{branch}/{path}"
-    return None
+from download_utils import download_text
 
 
 def download(url: str, timeout: int = 10) -> str:
-    cdn = _to_jsdelivr(url)
-    urls = [cdn, url] if cdn else [url]
-    last_exc: Exception | None = None
-    for u in urls:
-        try:
-            r = requests.get(u, timeout=timeout)
-            r.raise_for_status()
-            return r.text
-        except Exception as e:
-            print(f"  ⚠ {u} 失败: {e}")
-            last_exc = e
-    raise RuntimeError(f"所有镜像均失败: {url}") from last_exc
+    return download_text(url, timeout=timeout)
 
 
 # 中国 IP 段数据源（包含 IPv4 + IPv6）

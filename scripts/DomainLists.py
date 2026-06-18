@@ -7,16 +7,9 @@ Copyright © 2022 by Jeff, All Rights Reserved.
 
 from __future__ import annotations
 
-import re
 import requests
 
-
-def _to_jsdelivr(url: str) -> str | None:
-    m = re.match(r'https://raw\.githubusercontent\.com/([^/]+)/([^/]+)/([^/]+)/(.*)', url)
-    if m:
-        user, repo, branch, path = m.groups()
-        return f"https://cdn.jsdelivr.net/gh/{user}/{repo}@{branch}/{path}"
-    return None
+from download_utils import github_mirror_urls
 
 
 # 数据源
@@ -38,11 +31,9 @@ RELEASE_RAW_BASE = "https://gitea.jeffok.com:4443/jeff/asn-china/raw/branch/rele
 
 
 def download(url: str) -> str:
-    """下载文件内容（jsDelivr 主源，github 备源）"""
-    cdn = _to_jsdelivr(url)
-    urls = [cdn, url] if cdn else [url]
+    """下载文件内容（国内 GitHub 镜像优先，raw 兜底）"""
     last_exc: Exception | None = None
-    for u in urls:
+    for u in github_mirror_urls(url):
         try:
             r = requests.get(u, timeout=10)
             r.raise_for_status()
@@ -50,7 +41,7 @@ def download(url: str) -> str:
         except Exception as e:
             print(f"  ⚠ {u} 失败: {e}")
             last_exc = e
-    raise RuntimeError(f"所有镜像均失败: {url}") from last_exc
+    raise RuntimeError(f"所有 GitHub 镜像均失败: {url}") from last_exc
 
 
 def download_release_file(name: str) -> str:
