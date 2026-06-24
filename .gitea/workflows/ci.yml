@@ -59,7 +59,9 @@ jobs:
           gfw-ip-cidrs.txt \
           bogus-nxdomain.china.conf \
           ai-domains.txt \
-          common-domains-hillstone.txt
+          common-domains-hillstone.txt \
+          agh-upstream-domains.txt \
+          agh-upstream-manifest.json
         do
           if [ -f "$f" ]; then
             mv "$f" generated/

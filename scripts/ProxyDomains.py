@@ -12,6 +12,8 @@ from __future__ import annotations  # 兼容 Python 3.9 runner：延迟注解，
 
 import os
 import hashlib
+import json
+from datetime import datetime, timezone
 from pathlib import Path
 
 import requests
@@ -43,6 +45,8 @@ ROS_DELTA_OUTPUT = "dns_static_proxy_delta.rsc"
 ROS_MANIFEST_OUTPUT = "dns_static_proxy_manifest.rsc"
 HILLSTONE_OUTPUT = "common-domains-hillstone.txt"
 PLAINTEXT_OUTPUT = "proxy-domains.txt"
+AGH_OUTPUT = "agh-upstream-domains.txt"
+AGH_MANIFEST = "agh-upstream-manifest.json"
 
 COMMENT = "PROXY"
 # 大表导入时对 hAP ax lite 这类低内存 RouterOS 节流，避免一次性 import 触发管理面卡死或重启。
@@ -181,6 +185,55 @@ def load_popularity_fallback(reason: str) -> list[str]:
     return []
 
 
+def parse_plaintext_domains(text: str) -> set[str]:
+    """解析纯文本域名列表（每行一个）。"""
+    out: set[str] = set()
+    for line in text.splitlines():
+        line = line.strip().lower()
+        if not line or line.startswith("#"):
+            continue
+        out.add(line)
+    return out
+
+
+def load_previous_plaintext_domains(path: str) -> set[str]:
+    url = f"{RELEASE_RAW_BASE}/{path}"
+    try:
+        print(f"下载上一版 {path} 用于增量统计: {url}")
+        r = requests.get(url, timeout=20)
+        r.raise_for_status()
+        previous = parse_plaintext_domains(r.text)
+        print(f"  上一版 {path}: {len(previous)} 条")
+        return previous
+    except Exception as exc:  # noqa: BLE001
+        print(f"  警告：无法读取上一版 {path}: {exc}")
+        return set()
+
+
+def write_agh_manifest(
+    current_hash: str,
+    previous_hash: str,
+    current_count: int,
+    added: int,
+    removed: int,
+    path: str = AGH_MANIFEST,
+) -> None:
+    payload = {
+        "version": 1,
+        "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "current_hash": current_hash,
+        "previous_hash": previous_hash,
+        "count": current_count,
+        "added": added,
+        "removed": removed,
+        "source": "proxy-list ∪ gfw ∪ pin ∪ ai (eTLD+1, no rank cutoff)",
+        "domains_file": AGH_OUTPUT,
+    }
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(payload, f, indent=2, ensure_ascii=False)
+        f.write("\n")
+
+
 def write_ros(domains: list[str], path: str = ROS_OUTPUT, comment: str = COMMENT) -> None:
     with open(path, "w") as f:
         f.write(":global proxyForwardTo\n")
@@ -312,6 +365,23 @@ def main() -> None:
 
     # 统一候选源
     full = proxy | gfw | pin
+
+    # AGH 全量表（不依赖热门排名，供办公室 DNS 使用）
+    agh_domains = sorted(full | ai_reg)
+    previous_agh = load_previous_plaintext_domains(AGH_OUTPUT)
+    current_agh_set = set(agh_domains)
+    agh_added = len(current_agh_set - previous_agh)
+    agh_removed = len(previous_agh - current_agh_set)
+    agh_current_hash = domain_set_hash(agh_domains)
+    agh_previous_hash = domain_set_hash(previous_agh) if previous_agh else ""
+    write_plaintext(
+        agh_domains,
+        AGH_OUTPUT,
+        "AdGuard Home 全量海外上游域名（proxy∪gfw∪pin∪AI，无 rank 截断，每日更新）",
+    )
+    write_agh_manifest(agh_current_hash, agh_previous_hash, len(agh_domains), agh_added, agh_removed)
+    print(f"生成 {AGH_OUTPUT}（AGH 全量，{len(agh_domains)} 条；增量 +{agh_added} -{agh_removed}）")
+    print(f"生成 {AGH_MANIFEST}（hash={agh_current_hash[:12]}）")
 
     # 热门排名数据（中等表 + 山石表共用）
     pop = download_popularity()
