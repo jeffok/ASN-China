@@ -7,6 +7,8 @@ Copyright © 2022 by Jeff, All Rights Reserved.
 
 from __future__ import annotations
 
+import re
+
 import requests
 
 from download_utils import github_mirror_urls
@@ -28,6 +30,9 @@ SOURCES = {
     "bogus-nxdomain.china.conf": "https://raw.githubusercontent.com/felixonmars/dnsmasq-china-list/master/bogus-nxdomain.china.conf",
 }
 RELEASE_RAW_BASE = "https://gitea.jeffok.com:4443/jeff/asn-china/raw/branch/release-files"
+
+# 产物数量下限（2026-11 实测：cn≈110k / proxy≈26.5k / apple=165）；低于下限让 CI 失败，保留上一版 release-files
+MIN_COUNTS = {"cn-domains.txt": 80000, "proxy-domains.txt": 15000, "apple-cn.txt": 100}
 
 
 def download(url: str) -> str:
@@ -59,18 +64,42 @@ def download_or_release(url: str, fallback_file: str) -> str:
         return download_release_file(fallback_file)
 
 
+_DOMAIN_RE = re.compile(r"^[a-z0-9_]([a-z0-9_.-]*[a-z0-9_])?$")
+
+
 def extract_domains_plain(text: str) -> list[str]:
-    """提取纯域名列表（每行一个域名，忽略注释和空行）"""
+    """提取域名列表（每行一个域名，忽略注释和空行）。
+
+    v2ray-rules-dat 格式前缀处理：
+      - ``full:x.y`` / ``domain:x.y`` → 保留域名本体（输出为纯文本后缀匹配；
+        ``full:`` 的精确语义会略微放宽到子域，对分流场景可接受）
+      - ``regexp:`` / ``keyword:`` 及其它未知前缀 → 丢弃（纯文本无法表达）
+
+    历史 bug：原实现对任何含 ``:`` 的行一律跳过，导致 ``full:`` 条目全部丢失
+    （apple-cn 165 条全为 full: → 输出为空；direct-list 丢 199 条、proxy-list 丢 95 条）。
+    """
     domains = []
     for line in text.splitlines():
         line = line.strip()
         if not line or line.startswith("#") or line.startswith("!"):
             continue
-        # 忽略含特殊前缀的行（regexp: full: 等）
         if ":" in line:
+            prefix, _, rest = line.partition(":")
+            if prefix not in ("full", "domain"):
+                continue
+            # 去掉可能的属性后缀，如 ``domain:x.com:@cn``
+            line = rest.split(":", 1)[0].strip()
+        line = line.lower().rstrip(".")
+        if not line or not _DOMAIN_RE.match(line):
             continue
         domains.append(line)
     return domains
+
+
+def require_min(name: str, count: int, minimum: int) -> None:
+    """产物数量下限检查：不足则让 CI 失败，而不是静默发布缩水/空文件。"""
+    if count < minimum:
+        raise SystemExit(f"{name} 仅 {count} 条，低于下限 {minimum}，拒绝发布")
 
 
 def extract_domains_dnsmasq(text: str) -> list[str]:
@@ -123,6 +152,7 @@ def main() -> None:
         cn_domains = set(extract_domains_plain(download_release_file("cn-domains.txt")))
 
     cn_sorted = sorted(cn_domains)
+    require_min("cn-domains.txt", len(cn_sorted), MIN_COUNTS["cn-domains.txt"])
     write_list(cn_sorted, "cn-domains.txt", "国内域名列表（合并去重，每日更新）")
     print(f"生成 cn-domains.txt（{len(cn_sorted)} 条）\n")
 
@@ -131,6 +161,7 @@ def main() -> None:
     text = download_or_release(SOURCES["apple-cn.txt"], "apple-cn.txt")
     apple_domains = extract_domains_plain(text)
     apple_sorted = sorted(set(apple_domains))
+    require_min("apple-cn.txt", len(apple_sorted), MIN_COUNTS["apple-cn.txt"])
     write_list(apple_sorted, "apple-cn.txt", "Apple 中国域名列表（每日更新）")
     print(f"生成 apple-cn.txt（{len(apple_sorted)} 条）\n")
 
@@ -139,6 +170,7 @@ def main() -> None:
     text = download_or_release(SOURCES["proxy-list.txt"], "proxy-domains.txt")
     proxy_domains = extract_domains_plain(text)
     proxy_sorted = sorted(set(proxy_domains))
+    require_min("proxy-domains.txt", len(proxy_sorted), MIN_COUNTS["proxy-domains.txt"])
     write_list(proxy_sorted, "proxy-domains.txt", "代理域名列表（每日更新）")
     print(f"生成 proxy-domains.txt（{len(proxy_sorted)} 条）\n")
 

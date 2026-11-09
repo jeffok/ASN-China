@@ -51,7 +51,8 @@
 | [`IP.China.list`][ip_china] | 中国 IPv4 + IPv6 CIDR 快照，供 `ChinaIP.py` 兜底 |
 | [`ASN.China.list`][asn_china] | 中国 ASN 快照，供 `ChinaASN.py` 兜底 |
 | [`cn-domains.txt`][cn_domains] | 国内域名快照，供 `DomainLists.py` 兜底 |
-| [`apple-cn.txt`][apple_cn] | Apple 中国域名快照 |
+| [`apple-cn.txt`][apple_cn] | Apple 中国域名（约 165 条；上游为 `full:` 前缀，由 `DomainLists.py` 解析保留域名本体） |
+| [`cn-exceptions.txt`][cn_exceptions] | **国内例外**：`cn-domains` 中比 proxy/gfw/ai 父域更具体的条目（如 `apps.apple.com` vs `apple.com`），下游应**在代理名单之前**匹配（最具体匹配优先），由 `CnExceptions.py` 生成 |
 | [`proxy-domains.txt`][proxy_domains] | Loyalsoldier proxy-list 快照，供构建兜底，不是边缘设备使用的 6-8k 表 |
 | [`gfw-domains.txt`][gfw_domains] | GFW 域名快照，供 `DnsStaticGFW.py` / `ProxyDomains.py` 兜底 |
 | [`gfw-ip-cidrs.txt`][gfw_ip_cidrs] | Telegram 等 IP-CIDR 快照，供 `GfwIpCidr.py` 兜底 |
@@ -87,6 +88,7 @@
 [asn_china]: https://gitea.jeffok.com:4443/jeff/asn-china/raw/branch/release-files/ASN.China.list
 [cn_domains]: https://gitea.jeffok.com:4443/jeff/asn-china/raw/branch/release-files/cn-domains.txt
 [apple_cn]: https://gitea.jeffok.com:4443/jeff/asn-china/raw/branch/release-files/apple-cn.txt
+[cn_exceptions]: https://gitea.jeffok.com:4443/jeff/asn-china/raw/branch/release-files/cn-exceptions.txt
 [proxy_domains]: https://gitea.jeffok.com:4443/jeff/asn-china/raw/branch/release-files/proxy-domains.txt
 [gfw_domains]: https://gitea.jeffok.com:4443/jeff/asn-china/raw/branch/release-files/gfw-domains.txt
 [gfw_ip_cidrs]: https://gitea.jeffok.com:4443/jeff/asn-china/raw/branch/release-files/gfw-ip-cidrs.txt
@@ -340,9 +342,12 @@ ASN-China/
 │   ├── DnsStaticAI.py       # AI 域名 DNS 分流脚本生成（边缘 + hkros 两端）
 │   ├── GfwIpCidr.py         # GFW 应用 IP-CIDR 地址列表生成
 │   ├── ProxyDomains.py      # 代理域名生成（ROS 全量塌缩 + 山石精简）
-│   ├── DomainLists.py       # 域名列表生成（国内/Apple/proxy 等）
+│   ├── DomainLists.py       # 域名列表生成（国内/Apple/proxy 等；解析 full:/domain: 前缀，产物带数量下限）
+│   ├── CnExceptions.py      # 国内例外域名（cn 比 proxy/gfw/ai 父域更具体）
 │   ├── ai_allowlist.txt     # AI 域名人工审核 allowlist（主机精确）
 │   └── pin.txt              # 必保留代理域名（注册域级，钉死不被裁剪）
+├── tests/
+│   └── test_domain_lists.py # 离线单元测试（CI 中运行）
 ├── .gitea/workflows/
 │   └── ci.yml               # 每日自动构建
 ├── .gitignore
