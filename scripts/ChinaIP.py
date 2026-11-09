@@ -7,6 +7,7 @@ Copyright © 2022 by Jeff, All Rights Reserved.
 
 from __future__ import annotations
 
+import os
 import ipaddress
 
 from download_utils import download_text
@@ -19,8 +20,8 @@ def download(url: str, timeout: int = 10) -> str:
 # 中国 IP 段数据源（包含 IPv4 + IPv6）
 cn_url = "https://raw.githubusercontent.com/Loyalsoldier/geoip/release/text/cn.txt"
 fallback_ip_url = (
-    "https://gitea.jeffok.com:4443/jeff/asn-china/raw/branch/"
-    "release-files/IP.China.list"
+    os.environ.get("ASN_CHINA_RELEASE_BASE", "https://gitea.jeffok.com:4443/jeff/asn-china/raw/branch/release-files").rstrip("/")
+    + "/IP.China.list"
 )
 
 # 下载数据

@@ -7,6 +7,7 @@ Copyright © 2022 by Jeff, All Rights Reserved.
 
 from __future__ import annotations
 
+import os
 import re
 
 import requests
@@ -29,7 +30,7 @@ SOURCES = {
     # felixonmars 虚假 NXDOMAIN IP 过滤
     "bogus-nxdomain.china.conf": "https://raw.githubusercontent.com/felixonmars/dnsmasq-china-list/master/bogus-nxdomain.china.conf",
 }
-RELEASE_RAW_BASE = "https://gitea.jeffok.com:4443/jeff/asn-china/raw/branch/release-files"
+RELEASE_RAW_BASE = os.environ.get("ASN_CHINA_RELEASE_BASE", "https://gitea.jeffok.com:4443/jeff/asn-china/raw/branch/release-files").rstrip("/")
 
 # 产物数量下限（2026-11 实测：cn≈110k / proxy≈26.5k / apple=165）；低于下限让 CI 失败，保留上一版 release-files
 MIN_COUNTS = {"cn-domains.txt": 80000, "proxy-domains.txt": 15000, "apple-cn.txt": 100}

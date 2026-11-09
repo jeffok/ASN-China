@@ -32,7 +32,7 @@ POPULARITY_URLS = (
     ("Umbrella-http", "http://s3-us-west-1.amazonaws.com/umbrella-static/top-1m.csv.zip"),
     ("Tranco", "https://tranco-list.eu/top-1m.csv.zip"),
 )
-RELEASE_RAW_BASE = "https://gitea.jeffok.com:4443/jeff/asn-china/raw/branch/release-files"
+RELEASE_RAW_BASE = os.environ.get("ASN_CHINA_RELEASE_BASE", "https://gitea.jeffok.com:4443/jeff/asn-china/raw/branch/release-files").rstrip("/")
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 AI_ALLOWLIST_FILE = SCRIPT_DIR / "ai_allowlist.txt"

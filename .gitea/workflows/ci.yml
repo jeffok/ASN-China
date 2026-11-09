@@ -53,6 +53,8 @@ jobs:
           cn_routes.rsc \
           China_ASN.rsc \
           IP.China.list \
+          IPv4.China.list \
+          IPv6.China.list \
           ASN.China.list \
           cn-domains.txt \
           apple-cn.txt \

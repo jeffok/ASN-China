@@ -1,0 +1,64 @@
+name: Build and Publish Generated Files
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  schedule:
+    - cron: '0 20 * * *'  # UTC 20:00 / Beijing 04:00
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-files
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      ASN_CHINA_RELEASE_BASE: https://raw.githubusercontent.com/${{ github.repository }}/release-files
+
+    steps:
+    - name: Checkout main branch
+      uses: actions/checkout@v5
+
+    - name: Set up Python
+      uses: actions/setup-python@v6
+      with:
+        python-version: '3.12'
+
+    - name: Install dependencies
+      run: pip install requests tldextract
+
+    - name: Generate IP lists and ROS scripts
+      run: |
+        python -u scripts/ChinaIP.py
+        timeout 600 python -u scripts/ChinaASN.py
+        python -u scripts/ChinaROS.py
+        python -u scripts/DnsStaticGFW.py
+        python -u scripts/DnsStaticAI.py
+        python -u scripts/GfwIpCidr.py
+        python -u scripts/ProxyDomains.py
+        python -u scripts/DomainLists.py
+        python -u scripts/CnExceptions.py
+        python -m unittest discover -s tests
+
+    - name: Push generated files to release-files branch
+      run: |
+        mkdir generated
+        mv *.rsc *.list *.txt *.conf *.json generated/ 2>/dev/null || true
+        for f in IPv4.China.list gfw-domains.txt cn-domains.txt proxy-domains.txt ai-domains.txt; do
+          [ -s "generated/$f" ] || { echo "缺少产物 $f"; exit 1; }
+        done
+
+        cd generated
+        git init
+        git config user.name "github-actions"
+        git config user.email "actions@github.com"
+        git add .
+        git commit -m "Update generated files"
+        git branch -M release-files
+        git remote add origin "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}"
+        git push --force origin release-files

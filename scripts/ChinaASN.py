@@ -5,6 +5,7 @@ Description: 从 APNIC 委托文件提取中国 ASN 列表，生成 Surge 和 Ro
 Copyright © 2022 by Jeff, All Rights Reserved.
 '''
 
+import os
 import re
 import signal
 import time
@@ -15,8 +16,8 @@ import requests
 # APNIC 委托分配数据源
 APNIC_URL = "https://ftp.apnic.net/apnic/stats/apnic/delegated-apnic-latest"
 FALLBACK_ASN_LIST_URL = (
-    "https://gitea.jeffok.com:4443/jeff/asn-china/raw/branch/"
-    "release-files/ASN.China.list"
+    os.environ.get("ASN_CHINA_RELEASE_BASE", "https://gitea.jeffok.com:4443/jeff/asn-china/raw/branch/release-files").rstrip("/")
+    + "/ASN.China.list"
 )
 # 匹配中国 ASN 条目的正则
 PATTERN = re.compile(r"^apnic\|CN\|asn\|(\d+)\|")
