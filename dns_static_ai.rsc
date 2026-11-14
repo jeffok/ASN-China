@@ -1,0 +1,92 @@
+:global aiForwardTo
+:global aiAddressList
+:global aiComment
+:if ([:typeof $aiForwardTo] = "nothing") do={ :error "aiForwardTo is required" }
+:if ([:typeof $aiAddressList] = "nothing") do={ :error "aiAddressList is required" }
+:if ([:typeof $aiComment] = "nothing") do={ :global aiComment "AI" }
+/ip/dns/static/remove [find where comment=$aiComment]
+/ip/dns/static
+add name=abs.twimg.com type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=adminportal42.cursor.sh type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=agent.api5.cursor.sh type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=agent.api5geo.cursor.sh type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=agent.api5lat.cursor.sh type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=agent.global.api5.cursor.sh type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=agent.global.api5geo.cursor.sh type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=agent.global.api5lat.cursor.sh type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=agent.us.api5.cursor.sh type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=agentn.api5.cursor.sh type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=agentn.api5geo.cursor.sh type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=agentn.api5lat.cursor.sh type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=agentn.global.api5.cursor.sh type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=agentn.global.api5geo.cursor.sh type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=agentn.global.api5lat.cursor.sh type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=agentn.us.api5.cursor.sh type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=android.chat.openai.com type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=anysphere-binaries.s3.us-east-1.amazonaws.com type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=anysphere.co type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=api.anthropic.com type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=api.openai.com type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=api.perplexity.ai type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=api.twitter.com type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=api.x.ai type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=api.x.com type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=api2.cursor.sh type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=api2direct.cursor.sh type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=api2geo.cursor.sh type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=api3.cursor.sh type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=api4.cursor.sh type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=api5.cursor.sh type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=auth.openai.com type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=auth0.openai.com type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=authenticate.cursor.sh type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=authentication.cursor.sh type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=authenticator.cursor.sh type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=bard.google.com type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=cdn.anthropic.com type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=cdn.oaistatic.com type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=cdn.openai.com type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=chat.openai.com type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=chatgpt.com type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=claude.ai type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=claudeusercontent.com type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=console.anthropic.com type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=copilot.microsoft.com type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=cursor-cdn.com type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=cursor.com type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=cursor.sh type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=cursorapi.com type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=developers.openai.com type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=downloads.cursor.com type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=edgeservices.bing.com type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=files.openai.com type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=gemini.google.com type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=grok.com type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=help.openai.com type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=help.twitter.com type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=help.x.com type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=ios.chat.openai.com type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=marketplace.cursorapi.com type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=meta.ai type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=oaistatic.com type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=oaiusercontent.com type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=openai.com type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=pbs.twimg.com type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=perplexity.ai type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=platform.openai.com type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=prod.authentication.cursor.sh type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=repo42.cursor.sh type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=sora.com type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=sydney.bing.com type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=t.co type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=twitter.com type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=upload.twitter.com type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=upload.x.com type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=us-asia.gcpp.cursor.sh type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=us-eu.gcpp.cursor.sh type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=us-only.gcpp.cursor.sh type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=video.twimg.com type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=www.meta.ai type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=www.perplexity.ai type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=x.ai type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
+add name=x.com type=FWD forward-to=$aiForwardTo address-list=$aiAddressList match-subdomain=yes comment=$aiComment
