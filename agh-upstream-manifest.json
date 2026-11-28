@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "generated_at": "2026-11-28T02:32:58Z",
+  "current_hash": "a4fcc557f8e4d72abde85dca693b625faaa7ee44cef670e0139f432b3cab7f2d",
+  "previous_hash": "96b683b83ab8d92c12e29806b3eff9db809edcb3359c6aa0378e5e117dc17a4b",
+  "count": 25624,
+  "added": 4,
+  "removed": 0,
+  "source": "proxy-list ∪ gfw ∪ pin ∪ ai (eTLD+1, no rank cutoff)",
+  "domains_file": "agh-upstream-domains.txt"
+}
